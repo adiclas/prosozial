@@ -1,0 +1,451 @@
+<!-- ============== HEADER ============== -->
+<header class="site-header" [class.is-open]="mobileNavOpen()">
+  <div class="container site-header__inner">
+    <a class="brand" routerLink="/" aria-label="Prosozial — Startseite">
+      <img src="logo.svg" alt="Prosozial" width="140" height="40" />
+    </a>
+
+    <nav class="primary-nav" aria-label="Hauptnavigation">
+      @for (link of navLinks; track link.href) {
+        <a [href]="link.href">{{ link.label }}</a>
+      }
+    </nav>
+
+    <div class="site-header__actions">
+      <button type="button" class="icon-btn" aria-label="Suche">
+        <app-icon name="search" [size]="20" />
+      </button>
+      <a routerLink="/login" class="btn btn--primary">
+        Kostenlose Beratung
+      </a>
+      <button
+        type="button"
+        class="icon-btn site-header__menu"
+        aria-label="Menü öffnen"
+        [attr.aria-expanded]="mobileNavOpen()"
+        (click)="toggleMobileNav()"
+      >
+        <app-icon [name]="mobileNavOpen() ? 'arrow-left' : 'menu'" [size]="22" />
+      </button>
+    </div>
+  </div>
+
+  @if (mobileNavOpen()) {
+    <div class="mobile-nav" role="dialog" aria-label="Mobiles Menü">
+      <div class="container">
+        @for (link of navLinks; track link.href) {
+          <a [href]="link.href" (click)="closeMobileNav()">{{ link.label }}</a>
+        }
+        <a routerLink="/login" class="btn btn--primary btn--block" (click)="closeMobileNav()">
+          Kostenlose Beratung
+        </a>
+      </div>
+    </div>
+  }
+</header>
+
+<!-- ============== HERO ============== -->
+<section class="hero">
+  <div class="hero__bg" aria-hidden="true">
+    <div class="hero__blob hero__blob--1"></div>
+    <div class="hero__blob hero__blob--2"></div>
+  </div>
+
+  <div class="container hero__inner">
+    <div class="hero__content">
+      <span class="eyebrow">Hilfsmittel · Pflege · Beratung</span>
+      <h1 class="hero__title">
+        Selbstbestimmt leben.<br />
+        <span class="text-brand">Mit den richtigen Hilfsmitteln.</span>
+      </h1>
+      <p class="hero__lead">
+        Sichere, geprüfte und komfortable Produkte für Mobilität, Alltag und Pflege —
+        persönlich beraten, schnell geliefert und auf Wunsch direkt mit Ihrer Krankenkasse
+        abgerechnet.
+      </p>
+
+      <div class="hero__cta">
+        <a routerLink="/login" class="btn btn--primary btn--lg">
+          Beratung starten
+          <app-icon name="arrow-right" [size]="18" />
+        </a>
+        <a href="#produkte" class="btn btn--ghost btn--lg">
+          Produkte entdecken
+        </a>
+      </div>
+
+      <ul class="hero__trust">
+        <li>
+          <app-icon name="shield-check" [size]="20" />
+          TÜV-geprüfte Qualität
+        </li>
+        <li>
+          <app-icon name="truck" [size]="20" />
+          Lieferung in 24 Stunden
+        </li>
+        <li>
+          <app-icon name="lock" [size]="20" />
+          DSGVO-konform &amp; sicher
+        </li>
+      </ul>
+    </div>
+
+    <div class="hero__visual" aria-hidden="true">
+      <div class="hero__card hero__card--main">
+        <div class="hero__card-illu">
+          <app-icon name="wheelchair" [size]="56" />
+        </div>
+        <div>
+          <h3>Mobilität</h3>
+          <p>Über 320 Produkte auf Lager</p>
+        </div>
+      </div>
+      <div class="hero__card hero__card--sub hero__card--top">
+        <app-icon name="check" [size]="18" />
+        <span>Kostenfrei beraten lassen</span>
+      </div>
+      <div class="hero__card hero__card--sub hero__card--bottom">
+        <div class="avatars">
+          <span class="avatar" style="background:#9ed4ad">S</span>
+          <span class="avatar" style="background:#74c189">M</span>
+          <span class="avatar" style="background:#4daf6a">A</span>
+        </div>
+        <div>
+          <strong>4,9 / 5</strong>
+          <small>1.240 Bewertungen</small>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== FEATURE CARDS ============== -->
+<section class="section section--alt" id="produkte">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Unsere Kategorien</span>
+      <h2>Drei Wege zu mehr Selbstständigkeit</h2>
+      <p>
+        Von Mobilität über Alltag bis Pflege — wir haben die passenden Hilfsmittel,
+        die echte Probleme lösen.
+      </p>
+    </div>
+
+    <div class="feature-grid">
+      @for (f of features; track f.title) {
+        <article class="feature-card" [class.is-highlight]="f.highlight">
+          <div class="feature-card__icon">
+            <app-icon [name]="f.icon" [size]="28" />
+          </div>
+          <h3>{{ f.title }}</h3>
+          <p>{{ f.description }}</p>
+          <a href="#" class="feature-card__link">
+            {{ f.cta }}
+            <app-icon name="arrow-right" [size]="16" />
+          </a>
+        </article>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ============== COMPLETE SERVICES ============== -->
+<section class="section">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Vollständiges Sortiment</span>
+      <h2>Hilfsmittel für jede Lebenslage</h2>
+      <p>Sechs sorgfältig kuratierte Kategorien — alles aus einer Hand.</p>
+    </div>
+
+    <div class="service-grid">
+      @for (s of services; track s.title) {
+        <article class="service-card card card--hover">
+          <div class="service-card__icon">
+            <app-icon [name]="s.icon" [size]="32" />
+          </div>
+          <h3>{{ s.title }}</h3>
+          <p>{{ s.description }}</p>
+          <a href="#" class="service-card__link">
+            Mehr erfahren
+            <app-icon name="arrow-right" [size]="14" />
+          </a>
+        </article>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ============== BEFORE / AFTER SHOWCASE ============== -->
+<section class="section section--alt" id="ueber-uns">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Vorher &amp; Nachher</span>
+      <h2>Der Unterschied einer guten Beratung</h2>
+      <p>
+        Ein einziges Gespräch verändert den Alltag. Sehen Sie, was passiert, wenn Hilfsmittel
+        wirklich passen.
+      </p>
+    </div>
+
+    <div class="showcase">
+      <div class="showcase__compare" aria-label="Vorher Nachher Vergleich">
+        <div class="showcase__panel showcase__panel--before">
+          <div class="showcase__label">{{ showcaseBefore.label }}</div>
+          <div class="showcase__illu">
+            <app-icon name="shield-check" [size]="42" />
+          </div>
+          <span class="showcase__badge showcase__badge--before">{{ showcaseBefore.title }}</span>
+          <p>{{ showcaseBefore.note }}</p>
+        </div>
+
+        <button class="showcase__slider" type="button" aria-label="Vergleich umschalten">
+          <app-icon name="arrow-right" [size]="18" />
+        </button>
+
+        <div class="showcase__panel showcase__panel--after">
+          <div class="showcase__label">{{ showcaseAfter.label }}</div>
+          <div class="showcase__illu">
+            <app-icon name="sparkle" [size]="42" />
+          </div>
+          <span class="showcase__badge showcase__badge--after">{{ showcaseAfter.title }}</span>
+          <p>{{ showcaseAfter.note }}</p>
+        </div>
+      </div>
+
+      <ol class="showcase__steps" aria-label="Unser Ablauf">
+        <li>
+          <span class="showcase__num">1</span>
+          <h4>Kostenlose Beratung</h4>
+          <p>Wir hören zu und verstehen Ihre Situation.</p>
+        </li>
+        <li>
+          <span class="showcase__num">2</span>
+          <h4>Passgenaue Empfehlung</h4>
+          <p>Wir wählen das richtige Hilfsmittel aus.</p>
+        </li>
+        <li>
+          <span class="showcase__num">3</span>
+          <h4>Lieferung &amp; Aufbau</h4>
+          <p>Wir liefern und kümmern uns um die Abrechnung.</p>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============== TESTIMONIALS ============== -->
+<section class="section" id="bewertungen">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Stimmen unserer Kunden</span>
+      <h2>Was Familien &amp; Pflegeteams sagen</h2>
+      <p>Über 1.240 verifizierte Bewertungen mit einer Durchschnittsnote von 4,9 Sternen.</p>
+    </div>
+
+    <div class="testimonial-grid">
+      @for (t of testimonials; track t.name) {
+        <article class="testimonial card">
+          <div class="testimonial__stars" [attr.aria-label]="t.rating + ' von 5 Sternen'">
+            @for (s of stars(t.rating); track s) {
+              <app-icon name="star" [size]="18" />
+            }
+          </div>
+          <p class="testimonial__text">„{{ t.text }}“</p>
+          <div class="testimonial__person">
+            <span class="avatar avatar--lg" aria-hidden="true">{{ t.avatar }}</span>
+            <div>
+              <strong>{{ t.name }}</strong>
+              <small>{{ t.role }}</small>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ============== TRUST BADGES ============== -->
+<section class="section section--alt" id="b2b">
+  <div class="container">
+    <div class="section-head">
+      <span class="eyebrow">Vertrauen &amp; Sicherheit</span>
+      <h2>Zertifikate, auf die Sie sich verlassen können</h2>
+      <p>Sicherheit, Qualität und Datenschutz sind bei uns keine Floskeln — sondern geprüft.</p>
+    </div>
+
+    <div class="badge-grid">
+      @for (b of badges; track b.title) {
+        <article class="badge-card card card--hover">
+          <div class="badge-card__icon">
+            <app-icon [name]="b.icon" [size]="28" />
+          </div>
+          <h4>{{ b.title }}</h4>
+          <p>{{ b.description }}</p>
+        </article>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ============== GUARANTEE + PRICING + TEAM ============== -->
+<section class="section">
+  <div class="container">
+    <div class="grid-3">
+      <!-- Guarantee -->
+      <article class="guarantee" id="ablauf">
+        <div class="guarantee__seal" aria-hidden="true">
+          <app-icon name="badge-leaf" [size]="56" />
+        </div>
+        <h3>Zufriedenheits-Garantie</h3>
+        <p>
+          30 Tage Rückgaberecht auf alle lagernden Produkte. Falls etwas nicht passt,
+          holen wir es kostenfrei bei Ihnen ab.
+        </p>
+        <ul class="guarantee__list">
+          <li><app-icon name="check" [size]="18" /> Kostenfreier Rückversand</li>
+          <li><app-icon name="check" [size]="18" /> Schnelle Erstattung</li>
+          <li><app-icon name="check" [size]="18" /> Persönlicher Ansprechpartner</li>
+        </ul>
+      </article>
+
+      <!-- Pricing -->
+      <article class="pricing" id="kontakt">
+        <h3>Beratungs- &amp; Service-Pläne</h3>
+        <div class="pricing__cards">
+          @for (p of plans; track p.name) {
+            <div class="plan plan--{{ p.variant }}">
+              @if (p.badge) {
+                <span class="plan__badge">{{ p.badge }}</span>
+              }
+              <h4>{{ p.name }}</h4>
+              <div class="plan__price">
+                <strong>{{ p.price }}</strong>
+                <span>{{ p.period }}</span>
+              </div>
+              <p>{{ p.description }}</p>
+              <ul>
+                @for (feat of p.features; track feat) {
+                  <li>
+                    <app-icon name="check" [size]="16" />
+                    <span>{{ feat }}</span>
+                  </li>
+                }
+              </ul>
+              <a href="#" class="btn btn--block" [class.btn--primary]="p.variant === 'featured'" [class.btn--ghost]="p.variant !== 'featured'">
+                {{ p.cta }}
+              </a>
+            </div>
+          }
+        </div>
+      </article>
+
+      <!-- Team -->
+      <article class="team">
+        <h3>Unser Beratungsteam</h3>
+        <p>Erfahrene Spezialisten, die sich Zeit für Sie nehmen — telefonisch oder vor Ort.</p>
+
+        <ul class="team__list">
+          @for (m of team; track m.name) {
+            <li class="team__member">
+              <span class="team__avatar" [style.background]="m.avatarColor" aria-hidden="true">
+                {{ m.initials }}
+              </span>
+              <div class="team__meta">
+                <strong>{{ m.name }}</strong>
+                <small>{{ m.role }}</small>
+                <div class="team__stars" [attr.aria-label]="m.rating + ' von 5 Sternen'">
+                  @for (s of stars(m.rating); track s) {
+                    <app-icon name="star" [size]="14" />
+                  }
+                </div>
+              </div>
+            </li>
+          }
+        </ul>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============== CTA STRIP ============== -->
+<section class="section section--ink cta-strip">
+  <div class="container cta-strip__inner">
+    <div>
+      <span class="eyebrow" style="color:var(--color-brand-300)">Bereit loszulegen?</span>
+      <h2 style="color:#fff">Wir beraten Sie kostenlos und unverbindlich.</h2>
+      <p>
+        Vereinbaren Sie jetzt einen Termin — telefonisch, per Video oder direkt bei Ihnen
+        vor Ort. Wir finden das passende Hilfsmittel für Ihre Situation.
+      </p>
+    </div>
+    <div class="cta-strip__actions">
+      <a routerLink="/login" class="btn btn--accent btn--lg">
+        <app-icon name="phone" [size]="18" />
+        Beratung anfragen
+      </a>
+      <a href="tel:+498012345678" class="btn btn--ghost btn--lg" style="color:#fff;border-color:rgba(255,255,255,0.3)">
+        0800 123 456 78
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ============== FOOTER ============== -->
+<footer class="site-footer">
+  <div class="container site-footer__inner">
+    <div class="site-footer__brand">
+      <img src="logo-white.svg" alt="Prosozial" width="140" height="40" />
+      <p>
+        Prosozial — Hilfsmittel und Beratung für ein selbstbestimmtes Leben. Seit 2008
+        Ihr verlässlicher Partner in Deutschland.
+      </p>
+      <div class="site-footer__contact">
+        <span><app-icon name="phone" [size]="16" /> 0800 123 456 78</span>
+        <span><app-icon name="mail" [size]="16" /> service&#64;prosozial.de</span>
+      </div>
+    </div>
+
+    <div class="site-footer__cols">
+      <div>
+        <h5>Sortiment</h5>
+        <ul>
+          <li><a href="#">Mobilität</a></li>
+          <li><a href="#">Alltagshilfen</a></li>
+          <li><a href="#">Pflege &amp; Hygiene</a></li>
+          <li><a href="#">Therapie &amp; Fitness</a></li>
+          <li><a href="#">Notruf</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Service</h5>
+        <ul>
+          <li><a href="#">Beratung</a></li>
+          <li><a href="#">Kostenübernahme</a></li>
+          <li><a href="#">Lieferung &amp; Aufbau</a></li>
+          <li><a href="#">Reklamation</a></li>
+          <li><a href="#">Hilfe-Center</a></li>
+        </ul>
+      </div>
+      <div>
+        <h5>Unternehmen</h5>
+        <ul>
+          <li><a href="#">Über uns</a></li>
+          <li><a href="#">Karriere</a></li>
+          <li><a href="#">Presse</a></li>
+          <li><a href="#">Nachhaltigkeit</a></li>
+          <li><a href="#">Partner</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="container site-footer__bottom">
+    <small>© 2026 Prosozial GmbH · Alle Rechte vorbehalten</small>
+    <div class="site-footer__legal">
+      <a href="#">Impressum</a>
+      <a href="#">Datenschutz</a>
+      <a href="#">AGB</a>
+    </div>
+  </div>
+</footer>
