@@ -18,7 +18,8 @@ export function newSeminarGroup(fb: FormBuilder, s?: Partial<Seminar>): FormGrou
     description: [s?.description ?? ''],
     bullets: fb.array((s?.bullets ?? []).map((b) => fb.control(b ?? ''))),
     dates: fb.array((s?.dates ?? []).map((d) => newSeminarDateGroup(fb, d))),
-    lecturers: fb.array((s?.lecturers ?? []).map((l) => newSeminarLecturerGroup(fb, l))),
+    // Global pool reference — array of lecturer IDs.
+    lecturerIds: fb.control(s?.lecturerIds ?? []),
     documents: fb.array((s?.documents ?? []).map((d) => newSeminarDocumentGroup(fb, d))),
   });
 }

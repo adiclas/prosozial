@@ -11,15 +11,26 @@
       @for (group of groupedSections(); track group.name) {
         <div class="admin-nav__group">
           <h3 class="admin-nav__heading">{{ group.name }}</h3>
-          @for (item of group.items; track item.id) {
-            <button
-              type="button"
-              class="admin-nav__item"
-              [class.is-active]="active() === item.id"
-              (click)="setActive(item.id)"
-            >
-              {{ item.label }}
-            </button>
+          @for (item of group.items; track item.label) {
+            @if (item.route) {
+              <a
+                class="admin-nav__item"
+                [routerLink]="item.route"
+                [class.is-active]="item.route === '/seminars/lecturers'"
+              >
+                <app-icon name="user" [size]="14" />
+                {{ item.label }}
+              </a>
+            } @else {
+              <button
+                type="button"
+                class="admin-nav__item"
+                [class.is-active]="active() === item.id"
+                (click)="setActive(item.id!)"
+              >
+                {{ item.label }}
+              </button>
+            }
           }
         </div>
       }
@@ -113,8 +124,8 @@
                     <span>Ziel</span>
                     <input type="text" formControlName="href" />
                   </label>
-                  <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(headerNavArr, i)" aria-label="Entfernen">
-                    <app-icon name="arrow-right" [size]="14" />
+                <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(headerNavArr, i)" aria-label="Entfernen">
+                  <app-icon name="trash" [size]="14" />
                   </button>
                 </div>
               }
@@ -228,8 +239,8 @@
                     <span>Farbe</span>
                     <input type="color" formControlName="color" />
                   </label>
-                  <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(heroAvatars, i)" aria-label="Entfernen">
-                    <app-icon name="arrow-right" [size]="14" />
+                <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(heroAvatars, i)" aria-label="Entfernen">
+                  <app-icon name="trash" [size]="14" />
                   </button>
                 </div>
               }
@@ -262,8 +273,8 @@
                     <span>Text</span>
                     <input type="text" formControlName="label" />
                   </label>
-                  <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(heroTrustItems, i)" aria-label="Entfernen">
-                    <app-icon name="arrow-right" [size]="14" />
+                <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(heroTrustItems, i)" aria-label="Entfernen">
+                  <app-icon name="trash" [size]="14" />
                   </button>
                 </div>
               }
@@ -316,7 +327,7 @@
                     </button>
                     <strong>Karte {{ i + 1 }}</strong>
                     <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(featuresArr, i)" aria-label="Entfernen">
-                      <app-icon name="arrow-right" [size]="14" />
+                      <app-icon name="trash" [size]="14" />
                     </button>
                   </header>
                   <div class="grid-2">
@@ -368,7 +379,7 @@
                     </button>
                     <strong>Karte {{ i + 1 }}</strong>
                     <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(servicesArr, i)" aria-label="Entfernen">
-                      <app-icon name="arrow-right" [size]="14" />
+                      <app-icon name="trash" [size]="14" />
                     </button>
                   </header>
                   <div class="grid-2">
@@ -469,7 +480,7 @@
                     </button>
                     <strong>Siegel {{ i + 1 }}</strong>
                     <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(badgesArr, i)" aria-label="Entfernen">
-                      <app-icon name="arrow-right" [size]="14" />
+                      <app-icon name="trash" [size]="14" />
                     </button>
                   </header>
                   <div class="grid-2">
@@ -518,8 +529,8 @@
                     <span>Punkt</span>
                     <input type="text" [formControl]="asControl(i)" />
                   </label>
-                  <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(guaranteeItemsArr, idx)" aria-label="Entfernen">
-                    <app-icon name="arrow-right" [size]="14" />
+                    <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(guaranteeItemsArr, idx)" aria-label="Entfernen">
+                      <app-icon name="trash" [size]="14" />
                   </button>
                 </div>
               }
@@ -548,7 +559,7 @@
                     </button>
                     <strong>Plan {{ i + 1 }}</strong>
                     <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(plansArr, i)" aria-label="Entfernen">
-                      <app-icon name="arrow-right" [size]="14" />
+                      <app-icon name="trash" [size]="14" />
                     </button>
                   </header>
                   <div class="grid-2">
@@ -582,8 +593,8 @@
                             <span>Leistung</span>
                             <input type="text" [formControl]="asControl(f)" />
                           </label>
-                          <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(planFeaturesAt(i), j)" aria-label="Entfernen">
-                            <app-icon name="arrow-right" [size]="14" />
+                      <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(planFeaturesAt(i), j)" aria-label="Entfernen">
+                        <app-icon name="trash" [size]="14" />
                           </button>
                         </div>
                       }
@@ -622,7 +633,7 @@
                     </button>
                     <strong>Mitglied {{ i + 1 }}</strong>
                     <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(teamMembersArr, i)" aria-label="Entfernen">
-                      <app-icon name="arrow-right" [size]="14" />
+                      <app-icon name="trash" [size]="14" />
                     </button>
                   </header>
                   <div class="grid-2">
@@ -762,7 +773,7 @@
                     <input type="text" formControlName="text" />
                   </label>
                   <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(footerContactArr, i)" aria-label="Entfernen">
-                    <app-icon name="arrow-right" [size]="14" />
+                    <app-icon name="trash" [size]="14" />
                   </button>
                 </div>
               }
@@ -784,7 +795,7 @@
                     </button>
                     <strong>Spalte {{ i + 1 }}</strong>
                     <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(footerColumnsArr, i)" aria-label="Entfernen">
-                      <app-icon name="arrow-right" [size]="14" />
+                      <app-icon name="trash" [size]="14" />
                     </button>
                   </header>
                   <label><span>Titel</span><input type="text" formControlName="title" /></label>
@@ -801,8 +812,8 @@
                           </button>
                           <label><span>Label</span><input type="text" formControlName="label" /></label>
                           <label><span>Ziel</span><input type="text" formControlName="href" /></label>
-                          <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(footerColumnLinksAt(i), j)" aria-label="Entfernen">
-                            <app-icon name="arrow-right" [size]="14" />
+                      <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(footerColumnLinksAt(i), j)" aria-label="Entfernen">
+                        <app-icon name="trash" [size]="14" />
                           </button>
                         </div>
                       }
@@ -829,7 +840,7 @@
                   <label><span>Label</span><input type="text" formControlName="label" /></label>
                   <label><span>Ziel</span><input type="text" formControlName="href" /></label>
                   <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(footerLegalArr, i)" aria-label="Entfernen">
-                    <app-icon name="arrow-right" [size]="14" />
+                    <app-icon name="trash" [size]="14" />
                   </button>
                 </div>
               }

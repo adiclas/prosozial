@@ -27,6 +27,22 @@ type SectionId =
   | 'seminarsHeader'
   | 'seminars';
 
+interface SectionNavItem {
+  id: SectionId;
+  label: string;
+  group: string;
+  route?: never;
+}
+
+interface LinkNavItem {
+  id?: never;
+  label: string;
+  group: string;
+  route: string;
+}
+
+type NavItem = { id?: SectionId; label: string; route?: string };
+
 const ICON_NAMES = Object.keys(ICONS) as IconName[];
 
 @Component({
@@ -52,7 +68,11 @@ export class Admin {
 
   readonly active = signal<SectionId>('hero');
 
-  readonly sections: { id: SectionId; label: string; group: string }[] = [
+  /**
+   * Admin sidebar items. A section item activates an inline form editor;
+   * a link item navigates to a dedicated page (e.g. the lecturer manager).
+   */
+  readonly sections: (SectionNavItem | LinkNavItem)[] = [
     { id: 'header', label: 'Header / Navigation', group: 'Chrome' },
     { id: 'hero', label: 'Hero', group: 'Hero' },
     { id: 'featuresHeader', label: 'Header — Kategorien', group: 'Features' },
@@ -71,15 +91,16 @@ export class Admin {
     { id: 'footer', label: 'Footer', group: 'Footer' },
     { id: 'seminarsHeader', label: 'Header — Seminare', group: 'Seminare' },
     { id: 'seminars', label: 'Seminare', group: 'Seminare' },
+    { route: '/seminars/lecturers', label: 'Dozenten', group: 'Seminare' },
   ];
 
-  readonly activeSection = computed(() => this.sections.find((s) => s.id === this.active())!);
+  readonly activeSection = computed(() => this.sections.find((s) => (s as SectionNavItem).id === this.active()) as SectionNavItem);
 
   readonly groupedSections = computed(() => {
-    const groups = new Map<string, { id: SectionId; label: string }[]>();
+    const groups = new Map<string, NavItem[]>();
     for (const s of this.sections) {
       if (!groups.has(s.group)) groups.set(s.group, []);
-      groups.get(s.group)!.push({ id: s.id, label: s.label });
+      groups.get(s.group)!.push({ id: (s as SectionNavItem).id, label: s.label, route: (s as LinkNavItem).route });
     }
     return Array.from(groups.entries()).map(([name, items]) => ({ name, items }));
   });
@@ -92,12 +113,18 @@ export class Admin {
 
   /** Flattened view used by the admin seminars table. */
   readonly seminarsTable = computed(() =>
-    (this.seminars()?.seminars ?? []).map((s: any) => ({
-      id: s.id,
-      title: s.title,
-      provider: s.provider,
-      lecturerNames: (s.lecturers ?? []).map((l: any) => l.name).filter(Boolean).join(', '),
-    })),
+    (this.seminars()?.seminars ?? []).map((s: any) => {
+      const ids: string[] = Array.isArray(s.lecturerIds) ? s.lecturerIds : [];
+      const names = ids
+        .map((id) => this.current().lecturers?.find((l) => l.id === id)?.name)
+        .filter(Boolean);
+      return {
+        id: s.id,
+        title: s.title,
+        provider: s.provider,
+        lecturerNames: names.join(', '),
+      };
+    }),
   );
 
   // ---------- Form per section ----------

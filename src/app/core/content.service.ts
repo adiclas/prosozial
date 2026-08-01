@@ -47,6 +47,7 @@ export class ContentService {
   readonly videos = computed(() => this._content().videos);
   readonly seminarsHeader = computed(() => this._content().seminarsHeader);
   readonly seminars = computed(() => this._content().seminars);
+  readonly lecturers = computed(() => this._content().lecturers ?? []);
   readonly badgesHeader = computed(() => this._content().badgesHeader);
   readonly badges = computed(() => this._content().badges);
   readonly guarantee = computed(() => this._content().guarantee);
@@ -124,6 +125,7 @@ export class ContentService {
     merged.features = Array.isArray(r.features) ? r.features : base.features;
     merged.services = Array.isArray(r.services) ? r.services : base.services;
     merged.badges = Array.isArray(r.badges) ? r.badges : base.badges;
+    merged.lecturers = Array.isArray((r as any).lecturers) ? (r as any).lecturers : base.lecturers;
     merged.plans = Array.isArray(r.plans) ? r.plans : base.plans;
     merged.team = Array.isArray(r.team) ? r.team : base.team;
 

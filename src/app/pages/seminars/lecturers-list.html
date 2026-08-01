@@ -1,0 +1,56 @@
+<div class="lecturers-page">
+  <div class="container">
+    <header class="page-head">
+      <a routerLink="/seminars" class="back-link">← Zur Seminare-Übersicht</a>
+      <div class="page-head__row">
+        <div>
+          <span class="eyebrow">POOL</span>
+          <h1 class="page-title">Dozenten & Berater</h1>
+          <p class="page-head__hint">
+            <app-icon name="user" [size]="14" />
+            Globale Datenbank aller Vortragenden und Berater. Jedes Seminar referenziert diese per ID.
+          </p>
+        </div>
+        <a routerLink="/seminars/lecturers/new/edit" class="btn btn--primary">
+          <app-icon name="check" [size]="16" />
+          Neuer Dozent
+        </a>
+      </div>
+    </header>
+
+    @if (lecturers().length === 0) {
+      <p class="empty-state">
+        Noch keine Dozenten angelegt.
+        <a routerLink="/seminars/lecturers/new/edit">Ersten Dozenten anlegen →</a>
+      </p>
+    } @else {
+      <ul class="lecturer-grid" role="list">
+        @for (l of lecturers(); track l.id) {
+          <li class="lecturer-card" [style.--avatar-color]="l.avatarColor || 'var(--color-primary)'">
+            <a [routerLink]="['/seminars/lecturers', l.id, 'edit']" class="lecturer-card__link">
+              <div class="lecturer-card__avatar" aria-hidden="true">
+                @if (l.avatar) {
+                  <img [src]="l.avatar" [alt]="l.name" />
+                } @else {
+                  <span>{{ initialsOf(l) }}</span>
+                }
+              </div>
+              <h3 class="lecturer-card__name">{{ l.name }}</h3>
+              <p class="lecturer-card__role">{{ l.role }}</p>
+              @if (l.expertise?.length) {
+                <ul class="lecturer-card__tags">
+                  @for (tag of l.expertise; track tag) {
+                    <li>{{ tag }}</li>
+                  }
+                </ul>
+              }
+              <span class="lecturer-card__cta">
+                <app-icon name="settings" [size]="12" /> Bearbeiten
+              </span>
+            </a>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</div>

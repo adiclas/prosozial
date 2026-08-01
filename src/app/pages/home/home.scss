@@ -1036,9 +1036,9 @@
   border-radius: var(--radius-md);
   background: #fff;
 }
-
 .team__avatar {
-  width: 52px; height: 52px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -1046,6 +1046,9 @@
   font-weight: var(--fw-bold);
   font-size: var(--fs-md);
   flex-shrink: 0;
+  overflow: hidden;
+
+  img { width: 100%; height: 100%; object-fit: cover; }
 }
 
 .team__meta {
@@ -1064,6 +1067,20 @@
   gap: 1px;
   color: var(--color-accent-500);
   margin-top: 2px;
+}
+
+.team__more {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-ink-100);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--color-primary);
+
+  &:hover { text-decoration: underline; }
 }
 
 @media (max-width: 1024px) {

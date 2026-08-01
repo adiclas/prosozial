@@ -1,161 +1,395 @@
-<div class="seminar-edit-page">
-  <div class="container">
-    <header class="page-head">
-      <a routerLink="/admin" [queryParams]="{ section: 'seminars' }" class="back-link" (click)="$event.preventDefault(); cancel()">
-        ← Zurück zur Seminare-Übersicht
+<div class="seminar-edit-page" [class.has-dirty]="dirty()">
+  <div class="layout">
+    <!-- Sidebar nav (desktop) -->
+    <aside class="sidebar" aria-label="Sektionen">
+      <a class="back" routerLink="/admin" [queryParams]="{ section: 'seminars' }" (click)="$event.preventDefault(); cancel()">
+        <app-icon name="arrow-left" [size]="14" />
+        Seminare-Übersicht
       </a>
-      <div class="page-head__row">
-        <div>
-          <span class="eyebrow">EDIT</span>
+
+      <h2 class="sidebar__title">
+        <app-icon name="settings" [size]="14" /> Sektionen
+      </h2>
+
+      <ol class="sidebar__nav">
+        @for (s of sections; track s.id) {
+          <li>
+            <button
+              type="button"
+              class="sidebar__item"
+              [class.is-active]="currentSection() === s.id"
+              (click)="scrollTo(s.id, $event)"
+            >
+              <span class="sidebar__item-label">{{ s.label }}</span>
+              <span class="sidebar__item-dot" [class.is-done]="completion()[s.id]" aria-hidden="true"></span>
+            </button>
+          </li>
+        }
+      </ol>
+
+      @if (!isNew()) {
+        <div class="sidebar__danger">
+          <button type="button" class="btn btn--danger btn--block" (click)="deleteSeminar()" [disabled]="deleting()">
+            <app-icon name="trash" [size]="14" />
+            {{ deleting() ? 'Wird gelöscht …' : 'Seminar löschen' }}
+          </button>
+        </div>
+      }
+    </aside>
+
+    <!-- Main content -->
+    <main class="content">
+      <header class="page-head">
+        <div class="page-head__crumb">
+          <span class="eyebrow">{{ isNew() ? 'NEU ANLEGEN' : 'BEARBEITEN' }}</span>
           <h1 class="page-title">{{ pageTitle() }}</h1>
           @if (seminar(); as s) {
             <a [routerLink]="['/seminars', s.id]" class="page-head__view" target="_blank" rel="noopener">
-              Öffentliche Vorschau öffnen →
+              Öffentliche Vorschau öffnen
+              <app-icon name="arrow-right" [size]="12" />
             </a>
+          } @else {
+            <p class="page-head__hint">Noch nicht gespeichert. Titel & Status ausfüllen, dann auf <strong>Speichern</strong> klicken.</p>
+          }
+          @if (error(); as e) {
+            <p class="admin-status admin-status--error" role="alert" style="margin-top: var(--space-3)">
+              <app-icon name="triangle-alert" [size]="14" /> {{ e }}
+            </p>
+          }
+          @if (uploadError(); as e) {
+            <p class="admin-status admin-status--error" role="alert" style="margin-top: var(--space-3)">
+              <app-icon name="triangle-alert" [size]="14" /> {{ e }}
+            </p>
           }
         </div>
-        <div class="page-head__actions">
-          <button type="button" class="btn btn--ghost" (click)="cancel()">Abbrechen</button>
-          <button type="button" class="btn btn--primary" (click)="save()" [disabled]="form.invalid || saving()">
-            <app-icon name="check" [size]="16" />
-            {{ saving() ? 'Speichern …' : 'Speichern' }}
-          </button>
-        </div>
-      </div>
-      @if (error(); as e) {
-        <p class="admin-status admin-status--error" style="margin-top: var(--space-3)">
-          <app-icon name="triangle-alert" [size]="14" /> {{ e }}
-        </p>
-      }
-    </header>
+      </header>
 
-    <form [formGroup]="form" (ngSubmit)="save()" novalidate class="seminar-form">
-      <!-- Basics -->
-      <section class="card">
-        <h2>Grunddaten</h2>
-        <div class="grid-2">
-          <label>
-            <span>ID (URL-Slug)</span>
-            <input type="text" formControlName="id" placeholder="wird automatisch aus dem Titel erzeugt" />
-          </label>
-          <label>
-            <span>Status</span>
-            <select formControlName="status">
-              <option value="available">Plätze frei</option>
-              <option value="few-seats">Wenige Plätze</option>
-              <option value="fully-booked">Ausgebucht</option>
-              <option value="cancelled">Abgesagt</option>
-            </select>
-          </label>
-          <label class="span-2"><span>Titel</span><input type="text" formControlName="title" /></label>
-          <label><span>Veranstalter</span><input type="text" formControlName="provider" /></label>
-          <label><span>Kosten</span><input type="text" formControlName="cost" /></label>
-          <label><span>Ort</span><input type="text" formControlName="location" /></label>
-          <label><span>Anbieteradresse</span><input type="text" formControlName="supplierLocation" /></label>
-          <label class="span-2">
-            <span>Beschreibung</span>
-            <textarea rows="3" formControlName="description"></textarea>
-          </label>
-        </div>
-      </section>
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate class="seminar-form">
+        <!-- 1. Grundlagen -->
+        <section class="card" id="sec-basics">
+          <header class="card__head">
+            <div>
+              <span class="card__kicker">01</span>
+              <h2 class="card__title">Grundlagen</h2>
+            </div>
+          </header>
+          <div class="card__body grid-2">
+            <label>
+              <span class="lbl">Titel <em>*</em></span>
+              <input type="text" formControlName="title" placeholder="z.B. butler Finanztraining: Vermögen und Schulden" />
+              @if (form.get('title')?.touched && form.get('title')?.invalid) {
+                <small class="field-error">Titel ist erforderlich.</small>
+              }
+            </label>
+            <label>
+              <span class="lbl">ID (URL-Slug)</span>
+              <input type="text" formControlName="id" placeholder="wird automatisch aus dem Titel erzeugt" />
+              <small class="field-hint">Leer lassen — wird beim Speichern generiert.</small>
+            </label>
+            <label>
+              <span class="lbl">Status</span>
+              <select formControlName="status">
+                <option value="available">Plätze frei</option>
+                <option value="few-seats">Wenige Plätze</option>
+                <option value="fully-booked">Ausgebucht</option>
+                <option value="cancelled">Abgesagt</option>
+              </select>
+            </label>
+            <label>
+              <span class="lbl">Veranstalter</span>
+              <input type="text" formControlName="provider" placeholder="z.B. butler – Customer Support" />
+            </label>
+          </div>
+        </section>
 
-      <!-- Dates -->
-      <section class="card">
-        <h2>Termine</h2>
-        <div formArrayName="dates" class="array-stack">
-          @for (d of datesArr.controls; track d; let i = $index) {
-            <div class="card card--sub" [formGroupName]="i">
-              <header class="card__head">
-                <strong>Termin {{ i + 1 }}</strong>
-                <button type="button" class="btn btn--ghost btn--sm" (click)="removeDate(i)" aria-label="Termin entfernen">
-                  Entfernen
-                </button>
-              </header>
-              <div class="grid-2">
-                <label><span>Datum</span><input type="text" formControlName="date" placeholder="z.B. Freitag, 07. August 2026" /></label>
-                <label><span>Gruppenlabel</span><input type="text" formControlName="label" /></label>
-              </div>
+        <!-- 2. Ort & Kosten -->
+        <section class="card" id="sec-logistics">
+          <header class="card__head"><div><span class="card__kicker">02</span><h2 class="card__title">Ort & Kosten</h2></div></header>
+          <div class="card__body grid-2">
+            <label>
+              <span class="lbl">Veranstaltungsort</span>
+              <input type="text" formControlName="location" placeholder="z.B. prosozial GmbH, Seminarraum 2" />
+            </label>
+            <label>
+              <span class="lbl">Kosten</span>
+              <input type="text" formControlName="cost" placeholder="z.B. 298,00 € tax excl." />
+            </label>
+            <label class="span-2">
+              <span class="lbl">Anbieteradresse</span>
+              <input type="text" formControlName="supplierLocation" placeholder="z.B. 56112 Lahnstein, Koblenzer Straße 34 A" />
+            </label>
+          </div>
+        </section>
 
-              <h4>Slots</h4>
-              <div formArrayName="sessions" class="array-stack">
-                @for (sess of datesAt(i).controls; track sess; let j = $index) {
-                  <div class="array-row" [formGroupName]="j">
-                    <label><span>Uhrzeit</span><input type="text" formControlName="time" placeholder="10:00 – 12:30" /></label>
-                    <label><span>Titel</span><input type="text" formControlName="title" /></label>
-                    <button type="button" class="btn btn--ghost btn--sm" (click)="removeSession(i, j)" aria-label="Slot entfernen">
-                      <app-icon name="arrow-right" [size]="14" />
+        <!-- 3. Beschreibung -->
+        <section class="card" id="sec-description">
+          <header class="card__head"><div><span class="card__kicker">03</span><h2 class="card__title">Beschreibung</h2></div></header>
+          <div class="card__body">
+            <label>
+              <span class="lbl">Haupttext</span>
+              <textarea
+                rows="5"
+                formControlName="description"
+                placeholder="Kurze Beschreibung des Seminars. Worum geht es, für wen ist es gedacht?"
+              ></textarea>
+              <small class="field-hint">Wird auf der öffentlichen Detailseite im Beschreibungstext angezeigt.</small>
+            </label>
+          </div>
+        </section>
+
+        <!-- 4. Termine (drag-to-reorder) -->
+        <section class="card" id="sec-dates">
+          <header class="card__head">
+            <div>
+              <span class="card__kicker">04</span>
+              <h2 class="card__title">Termine</h2>
+              <p class="card__sub">Mehrtägige Seminare? Pro Tag einen Eintrag. Innerhalb eines Tages mehrere Slots anlegen.</p>
+            </div>
+            <button type="button" class="btn btn--primary" (click)="addDate()">
+              <span>+ Termin</span>
+            </button>
+          </header>
+          <div class="card__body">
+            <div formArrayName="dates" class="reorder-list">
+              @if (datesArr.length === 0) {
+                <p class="empty-state">
+                  <app-icon name="play" [size]="20" /> Noch keine Termine — legen Sie den ersten an.
+                </p>
+              }
+              @for (d of datesArr.controls; track d; let i = $index) {
+                <div class="subcard" [formGroupName]="i" cdkDrag>
+                  <header class="subcard__head">
+                    <button type="button" cdkDragHandle class="grip" aria-label="Termin verschieben">
+                      <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                        <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                        <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                      </svg>
                     </button>
+                    <div class="subcard__title">
+                      <strong>Termin {{ i + 1 }}</strong>
+                      <span class="subcard__title-meta">{{ d.get('date')?.value || 'ohne Datum' }}</span>
+                    </div>
+                    <button type="button" class="btn btn--ghost btn--sm" (click)="removeDate(i)" aria-label="Termin entfernen">
+                      <app-icon name="trash" [size]="14" />
+                    </button>
+                  </header>
+
+                  <div class="grid-2">
+                    <label>
+                      <span class="lbl">Datum</span>
+                      <input type="text" formControlName="date" placeholder="z.B. Freitag, 07. August 2026" />
+                    </label>
+                    <label>
+                      <span class="lbl">Gruppenlabel (optional)</span>
+                      <input type="text" formControlName="label" placeholder="z.B. butler Finanztraining" />
+                    </label>
                   </div>
-                }
-                <button type="button" class="btn btn--ghost btn--sm" (click)="addSession(i)">+ Slot</button>
-              </div>
-            </div>
-          }
-          <button type="button" class="btn btn--ghost" (click)="addDate()">+ Termin</button>
-        </div>
-      </section>
 
-      <!-- Lecturers -->
-      <section class="card">
-        <h2>Vortragende</h2>
-        <div formArrayName="lecturers" class="array-stack">
-          @for (l of lecturersArr.controls; track l; let i = $index) {
-            <div class="array-row" [formGroupName]="i">
-              <label><span>Name</span><input type="text" formControlName="name" /></label>
-              <label><span>Rolle</span><input type="text" formControlName="role" /></label>
-              <label><span>Avatar-URL</span><input type="text" formControlName="avatar" /></label>
-              <button type="button" class="btn btn--ghost btn--sm" (click)="removeLecturer(i)" aria-label="Vortragende entfernen">
-                <app-icon name="arrow-right" [size]="14" />
-              </button>
+                  <h4 class="subhead">Slots <small>(am Tag)</small></h4>
+                  <div formArrayName="sessions" class="reorder-list">
+                    @for (sess of datesAt(i).controls; track sess; let j = $index) {
+                      <div class="row" [formGroupName]="j" cdkDrag>
+                        <button type="button" cdkDragHandle class="grip" aria-label="Slot verschieben">
+                          <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" aria-hidden="true">
+                            <circle cx="5" cy="4" r="1"/><circle cx="5" cy="8" r="1"/><circle cx="5" cy="12" r="1"/>
+                            <circle cx="11" cy="4" r="1"/><circle cx="11" cy="8" r="1"/><circle cx="11" cy="12" r="1"/>
+                          </svg>
+                        </button>
+                        <label class="grow">
+                          <span class="lbl">Uhrzeit</span>
+                          <input type="text" formControlName="time" placeholder="10:00 – 12:30" />
+                        </label>
+                        <label class="grow-2">
+                          <span class="lbl">Titel</span>
+                          <input type="text" formControlName="title" placeholder="z.B. Mittagspause" />
+                        </label>
+                        <button type="button" class="btn btn--ghost btn--sm btn-icon" (click)="removeSession(i, j)" aria-label="Slot entfernen">
+                          <app-icon name="trash" [size]="14" />
+                        </button>
+                      </div>
+                    }
+                  </div>
+                  <button type="button" class="btn btn--ghost btn--sm btn-add" (click)="addSession(i)">
+                    <span>+ Slot</span>
+                  </button>
+                </div>
+              }
             </div>
-          }
-          <button type="button" class="btn btn--ghost btn--sm" (click)="addLecturer()">+ Vortragende:r</button>
-        </div>
-      </section>
+          </div>
+        </section>
 
-      <!-- Documents -->
-      <section class="card">
-        <h2>Dokumente</h2>
-        <div formArrayName="documents" class="array-stack">
-          @for (d of documentsArr.controls; track d; let i = $index) {
-            <div class="array-row" [formGroupName]="i">
-              <label><span>Label</span><input type="text" formControlName="label" /></label>
-              <label><span>URL</span><input type="text" formControlName="url" /></label>
-              <button type="button" class="btn btn--ghost btn--sm" (click)="removeDocument(i)" aria-label="Dokument entfernen">
-                <app-icon name="arrow-right" [size]="14" />
-              </button>
+        <!-- 5. Vortragende (selector from global pool) -->
+        <section class="card" id="sec-lecturers">
+          <header class="card__head">
+            <div>
+              <span class="card__kicker">05</span>
+              <h2 class="card__title">Vortragende</h2>
+              <p class="card__sub">
+                Personen aus dem globalen Pool wählen.
+                <a routerLink="/seminars/lecturers" target="_blank">Pool verwalten →</a>
+              </p>
             </div>
-          }
-          <button type="button" class="btn btn--ghost btn--sm" (click)="addDocument()">+ Dokument</button>
-        </div>
-      </section>
-
-      <!-- Bullets -->
-      <section class="card">
-        <h2>Inhaltspunkte</h2>
-        <div formArrayName="bullets" class="array-stack">
-          @for (b of bulletsArr.controls; track b; let i = $index) {
-            <div class="array-row single">
-              <label class="grow">
-                <span>Punkt {{ i + 1 }}</span>
-                <input type="text" [formControl]="asControl(b)" />
-              </label>
-              <button type="button" class="btn btn--ghost btn--sm" (click)="removeBullet(i)" aria-label="Punkt entfernen">
-                <app-icon name="arrow-right" [size]="14" />
-              </button>
+          </header>
+          <div class="card__body">
+            <div class="lecturer-picker">
+              @if (allLecturers().length === 0) {
+                <p class="empty-state">
+                  Noch keine Dozenten im Pool.
+                  <a routerLink="/seminars/lecturers/new/edit">Ersten Dozenten anlegen →</a>
+                </p>
+              } @else {
+                <ul class="lecturer-picker__grid">
+                  @for (l of allLecturers(); track l.id) {
+                    <li>
+                      <button
+                        type="button"
+                        class="lecturer-chip"
+                        [class.is-selected]="isLecturerSelected(l.id)"
+                        (click)="toggleLecturer(l.id)"
+                        [attr.aria-pressed]="isLecturerSelected(l.id)"
+                      >
+                        <span class="lecturer-chip__avatar" [style.background]="l.avatarColor || 'var(--color-primary)'" aria-hidden="true">
+                          @if (l.avatar) {
+                            <img [src]="l.avatar" alt="" />
+                          } @else {
+                            {{ initialsOf(l.name) }}
+                          }
+                        </span>
+                        <span class="lecturer-chip__meta">
+                          <strong>{{ l.name }}</strong>
+                          <small>{{ l.role }}</small>
+                        </span>
+                        <span class="lecturer-chip__check" aria-hidden="true">
+                          @if (isLecturerSelected(l.id)) {
+                            <app-icon name="check" [size]="14" />
+                          } @else {
+                            <app-icon name="play" [size]="14" />
+                          }
+                        </span>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
             </div>
-          }
-          <button type="button" class="btn btn--ghost btn--sm" (click)="addBullet()">+ Punkt</button>
-        </div>
-      </section>
 
-      <div class="footer-actions">
+            <!-- Hidden form control so getRawValue includes the IDs -->
+            <input type="hidden" formControlName="lecturerIds" [value]="form.get('lecturerIds')?.value" />
+
+            @if (selectedLecturerIds().size > 0) {
+              <p class="picked-summary">
+                <app-icon name="check" [size]="14" />
+                {{ selectedLecturerIds().size }} Dozent{{ selectedLecturerIds().size === 1 ? '' : 'en' }} ausgewählt
+              </p>
+            } @else {
+              <p class="picked-summary picked-summary--empty">
+                <app-icon name="sparkle" [size]="14" />
+                Noch keine Dozenten zugewiesen
+              </p>
+            }
+          </div>
+        </section>
+
+        <!-- 6. Dokumente -->
+        <section class="card" id="sec-documents">
+          <header class="card__head">
+            <div>
+              <span class="card__kicker">06</span>
+              <h2 class="card__title">Dokumente</h2>
+              <p class="card__sub">Anreisepläne, Anmeldeformulare, Skripte — alles, was Teilnehmer:innen herunterladen sollen.</p>
+            </div>
+            <button type="button" class="btn btn--primary" (click)="addDocument()">
+              <span>+ Dokument</span>
+            </button>
+          </header>
+          <div class="card__body">
+            <div formArrayName="documents" class="reorder-list">
+              @if (documentsArr.length === 0) {
+                <p class="empty-state">Keine Dokumente verlinkt.</p>
+              }
+              @for (d of documentsArr.controls; track d; let i = $index) {
+                <div class="row" [formGroupName]="i" cdkDrag>
+                  <button type="button" cdkDragHandle class="grip" aria-label="Dokument verschieben">
+                    <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" aria-hidden="true">
+                      <circle cx="5" cy="4" r="1"/><circle cx="5" cy="8" r="1"/><circle cx="5" cy="12" r="1"/>
+                      <circle cx="11" cy="4" r="1"/><circle cx="11" cy="8" r="1"/><circle cx="11" cy="12" r="1"/>
+                    </svg>
+                  </button>
+                  <label class="grow"><span class="lbl">Label</span><input type="text" formControlName="label" placeholder="z.B. Anreiseübersicht.pdf" /></label>
+                  <label class="grow-2"><span class="lbl">URL</span><input type="text" formControlName="url" placeholder="https://…" /></label>
+                  <button type="button" class="btn btn--ghost btn--sm btn-icon" (click)="removeDocument(i)" aria-label="Dokument entfernen">
+                    <app-icon name="trash" [size]="14" />
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. Inhaltspunkte -->
+        <section class="card" id="sec-bullets">
+          <header class="card__head">
+            <div>
+              <span class="card__kicker">07</span>
+              <h2 class="card__title">Inhaltspunkte</h2>
+              <p class="card__sub">Stichpunkte, die auf der öffentlichen Detailseite als „Inhalt" angezeigt werden.</p>
+            </div>
+            <button type="button" class="btn btn--primary" (click)="addBullet()">
+              <span>+ Punkt</span>
+            </button>
+          </header>
+          <div class="card__body">
+            <div formArrayName="bullets" class="reorder-list">
+              @if (bulletsArr.length === 0) {
+                <p class="empty-state">Keine Inhaltspunkte.</p>
+              }
+              @for (b of bulletsArr.controls; track b; let i = $index) {
+                <div class="row row--full" cdkDrag>
+                  <button type="button" cdkDragHandle class="grip" aria-label="Punkt verschieben">
+                    <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" aria-hidden="true">
+                      <circle cx="5" cy="4" r="1"/><circle cx="5" cy="8" r="1"/><circle cx="5" cy="12" r="1"/>
+                      <circle cx="11" cy="4" r="1"/><circle cx="11" cy="8" r="1"/><circle cx="11" cy="12" r="1"/>
+                    </svg>
+                  </button>
+                  <label class="grow">
+                    <span class="lbl">Punkt {{ i + 1 }}</span>
+                    <input type="text" [formControl]="asControl(b)" placeholder="z.B. Maintain accounts and postings" />
+                  </label>
+                  <button type="button" class="btn btn--ghost btn--sm btn-icon" (click)="removeBullet(i)" aria-label="Punkt entfernen">
+                    <app-icon name="trash" [size]="14" />
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+      </form>
+    </main>
+  </div>
+
+  <!-- Sticky save bar -->
+  <div class="savebar" [class.is-dirty]="dirty()" [class.is-saving]="saving()" [class.is-saved]="status() === 'saved'">
+    <div class="savebar__inner">
+      <div class="savebar__status">
+        @if (saving()) {
+          <span class="dot dot--saving"></span> Wird gespeichert …
+        } @else if (status() === 'saved' && !dirty()) {
+          <app-icon name="check" [size]="16" /> Auf Server gespeichert
+        } @else if (dirty()) {
+          <span class="dot dot--dirty"></span> Ungespeicherte Änderungen
+        } @else if (error(); as e) {
+          <app-icon name="triangle-alert" [size]="14" /> {{ e }}
+        } @else {
+          <app-icon name="check" [size]="14" /> Bereit
+        }
+      </div>
+      <div class="savebar__actions">
         <button type="button" class="btn btn--ghost" (click)="cancel()">Abbrechen</button>
-        <button type="submit" class="btn btn--primary" [disabled]="form.invalid || saving()">
+        <button type="button" class="btn btn--primary" (click)="save()" [disabled]="form.invalid || saving()">
           <app-icon name="check" [size]="16" />
           {{ saving() ? 'Speichern …' : 'Speichern' }}
         </button>
       </div>
-    </form>
+    </div>
   </div>
 </div>

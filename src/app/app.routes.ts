@@ -11,6 +11,18 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/seminars/seminars-list').then((m) => m.SeminarsList),
   },
   {
+    path: 'seminars/lecturers',
+    loadComponent: () => import('./pages/seminars/lecturers-list').then((m) => m.LecturersList),
+  },
+  {
+    path: 'seminars/lecturers/new/edit',
+    loadComponent: () => import('./pages/seminars/lecturer-edit').then((m) => m.LecturerEdit),
+  },
+  {
+    path: 'seminars/lecturers/:id/edit',
+    loadComponent: () => import('./pages/seminars/lecturer-edit').then((m) => m.LecturerEdit),
+  },
+  {
     path: 'seminars/new/edit',
     canActivate: [authGuard, adminGuard],
     loadComponent: () => import('./pages/seminars/seminar-edit').then((m) => m.SeminarEdit),

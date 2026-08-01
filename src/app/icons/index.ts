@@ -11,7 +11,7 @@ import { lockIcon, userIcon } from './lock.icon';
 import { sparkleIcon, infoCircleIcon, triangleAlertIcon } from './specialty.icon';
 import { trophyIcon, pawPrintIcon } from './team.icon';
 import { rosetteCheckIcon, gaugeIcon, bulbIcon } from './badges.icon';
-import { copyIcon, sendIcon, accessibilityIcon, searchIcon, menuIcon, refreshIcon } from './ui.icon';
+import { copyIcon, sendIcon, accessibilityIcon, searchIcon, menuIcon, refreshIcon, trashIcon } from './ui.icon';
 import {
   wheelchairIcon,
   cupIcon,
@@ -65,6 +65,7 @@ export const ICONS = {
   search: searchIcon,
   menu: menuIcon,
   refresh: refreshIcon,
+  trash: trashIcon,
 
   // Static (care-specific, no itshover equivalent)
   wheelchair: wheelchairIcon,

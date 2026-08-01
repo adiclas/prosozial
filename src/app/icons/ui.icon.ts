@@ -91,3 +91,19 @@ export const refreshIcon: IconDef = {
     { target: 'arrow', property: 'rotate', values: [0], duration: 200 },
   ],
 };
+
+/** Trash / delete - lid lifts on hover, can shakes. */
+export const trashIcon: IconDef = {
+  parts: [
+    { id: 'lid', d: 'M4 7h16 M9 7V4h6v3', transformOrigin: 'center top' },
+    { id: 'can', d: 'M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13 M10 11v6 M14 11v6', transformOrigin: 'center' },
+  ],
+  hoverIn: [
+    { target: 'lid', property: 'translateY', values: [0, -2], duration: 250, ease: 'ease-out' },
+    { target: 'can', property: 'rotate', values: [0, -4, 4, 0], duration: 350, ease: 'ease-in-out' },
+  ],
+  hoverOut: [
+    { target: 'lid', property: 'translateY', values: [0], duration: 200 },
+    { target: 'can', property: 'rotate', values: [0], duration: 250 },
+  ],
+};

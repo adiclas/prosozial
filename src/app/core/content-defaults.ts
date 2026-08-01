@@ -175,9 +175,7 @@ export const DEFAULT_CONTENT: SiteContent = {
             ],
           },
         ],
-        lecturers: [
-          { name: 'Gehrmann, Silke (butler)', role: 'Trainerin' },
-        ],
+        lecturerIds: ['silke-gehrmann'],
         documents: [
           { label: 'Anreiseübersicht.pdf', url: '/assets/seminars/anreiseuebersicht.pdf' },
         ],
@@ -208,9 +206,7 @@ export const DEFAULT_CONTENT: SiteContent = {
             ],
           },
         ],
-        lecturers: [
-          { name: 'Werner, Klaus', role: 'Pflegedienstleiter & Dozent' },
-        ],
+        lecturerIds: ['klaus-werner'],
         documents: [],
       },
     ],
@@ -352,4 +348,52 @@ export const DEFAULT_CONTENT: SiteContent = {
       { label: 'AGB', href: '#' },
     ],
   },
+
+  // ============================================================
+  // Global lecturer pool — managed at /seminars/lecturers.
+  // Seeded with the three consulting-team members so the public
+  // homepage still has a populated "Beratungsteam" section.
+  // ============================================================
+  lecturers: [
+    {
+      id: 'silke-gehrmann',
+      name: 'Silke Gehrmann',
+      role: 'Trainerin · butler Customer Support',
+      avatarColor: '#007F41',
+      expertise: ['butler', 'Finanzverwaltung', 'Schulungen'],
+      order: 1,
+    },
+    {
+      id: 'klaus-werner',
+      name: 'Klaus Werner',
+      role: 'Pflegedienstleiter & Dozent',
+      avatarColor: '#0f172a',
+      expertise: ['Pflegekasse', 'Hilfsmittelverordnung'],
+      order: 2,
+    },
+    {
+      id: 'anna-vogt',
+      name: 'Anna Vogt',
+      role: 'Hilfsmittel-Beraterin',
+      avatarColor: '#9ed4ad',
+      expertise: ['Mobilität', 'Alltagshilfen', 'Beratung'],
+      order: 3,
+    },
+    {
+      id: 'markus-lehner',
+      name: 'Markus Lehner',
+      role: 'Pflege-Spezialist',
+      avatarColor: '#74c189',
+      expertise: ['Demenz', 'Häusliche Pflege'],
+      order: 4,
+    },
+    {
+      id: 'sophia-bach',
+      name: 'Sophia Bach',
+      role: 'Ergotherapeutin',
+      avatarColor: '#4daf6a',
+      expertise: ['Therapie', 'Rehabilitation'],
+      order: 5,
+    },
+  ],
 };

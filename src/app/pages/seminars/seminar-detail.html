@@ -60,16 +60,18 @@
 
         <!-- Right column: lecturers + contents -->
         <div class="col col--side">
-          @if (s.lecturers?.length) {
+          @if (lecturers().length) {
             <section>
               <h2>Lecturers</h2>
               <ul class="lecturers">
-                @for (l of s.lecturers; track l.name) {
+                @for (l of lecturers(); track l.id) {
                   <li>
                     @if (l.avatar) {
                       <img [src]="l.avatar" [alt]="l.name" />
                     } @else {
-                      <span class="avatar" aria-hidden="true">{{ l.name.charAt(0) }}</span>
+                      <span class="avatar" [style.background]="l.avatarColor || 'var(--color-primary)'" aria-hidden="true">
+                        {{ l.name.charAt(0) }}
+                      </span>
                     }
                     <div>
                       <strong>{{ l.name }}</strong>

@@ -35,9 +35,17 @@ export class Home {
   readonly badges = this.content.badges;
   readonly guarantee = this.content.guarantee;
   readonly plans = this.content.plans;
-  readonly teamTitle = this.content.teamTitle;
-  readonly teamText = this.content.teamText;
-  readonly team = this.content.team;
+  readonly lecturers = this.content.lecturers;
+  /** First 3 lecturers from the global pool, sorted by `order`. */
+  readonly topLecturers = computed(() =>
+    [...this.lecturers()]
+      .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
+      .slice(0, 3),
+  );
+  /** Header copy for the lecturers card. Reuses the old team* field names so the
+   *  content schema doesn't need to change. */
+  readonly teamTitle = computed(() => 'Unser Beratungsteam');
+  readonly teamText  = computed(() => 'Unsere Expert:innen beraten Sie persönlich — online, telefonisch oder vor Ort.');
   readonly ctaStrip = this.content.ctaStrip;
   readonly footer = this.content.footer;
 
@@ -129,6 +137,15 @@ export class Home {
 
   stars(rating: number): number[] {
     return Array.from({ length: rating }, (_, i) => i);
+  }
+
+  lecturerInitials(name: string): string {
+    return (name ?? '')
+      .split(/\s+/)
+      .map((w) => w[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase();
   }
 
   /**

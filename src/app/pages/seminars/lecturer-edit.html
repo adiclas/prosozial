@@ -1,0 +1,152 @@
+<div class="lecturer-edit-page">
+  <div class="layout">
+    <main class="content">
+      <header class="page-head">
+        <a class="back" routerLink="/seminars/lecturers" (click)="$event.preventDefault(); cancel()">
+          <app-icon name="arrow-left" [size]="14" /> Zur Dozenten-Übersicht
+        </a>
+        <div class="page-head__crumb">
+          <span class="eyebrow">{{ isNew() ? 'NEU ANLEGEN' : 'BEARBEITEN' }}</span>
+          <h1 class="page-title">{{ pageTitle() }}</h1>
+          @if (lecturer(); as l) {
+            <p class="page-head__hint">
+              ID: <code>{{ l.id }}</code> · Wird in {{ countUses(l.id) }} Seminar{{ countUses(l.id) === 1 ? '' : 'en' }} verwendet
+            </p>
+          } @else {
+            <p class="page-head__hint">
+              <app-icon name="sparkle" [size]="14" />
+              Noch nicht gespeichert. Name & Rolle ausfüllen, dann auf <strong>Speichern</strong> klicken.
+            </p>
+          }
+          @if (uploadError(); as e) {
+            <p class="admin-status admin-status--error" role="alert" style="margin-top: var(--space-3)">
+              <app-icon name="triangle-alert" [size]="14" /> {{ e }}
+            </p>
+          }
+        </div>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+        <div class="grid-2">
+          <section class="card">
+            <h2>Profil</h2>
+            <div class="card__body grid-2">
+              <label class="span-2">
+                <span class="lbl">Name <em>*</em></span>
+                <input type="text" formControlName="name" placeholder="Vor- und Nachname" />
+                @if (form.get('name')?.touched && form.get('name')?.invalid) {
+                  <small class="field-error">Name ist erforderlich.</small>
+                }
+              </label>
+              <label>
+                <span class="lbl">Rolle / Position <em>*</em></span>
+                <input type="text" formControlName="role" placeholder="z.B. Pflegedienstleiter & Dozent" />
+              </label>
+              <label>
+                <span class="lbl">ID (URL-Slug)</span>
+                <input type="text" formControlName="id" placeholder="wird automatisch aus dem Namen erzeugt" />
+                <small class="field-hint">Leer lassen — wird beim Speichern generiert.</small>
+              </label>
+              <label class="span-2">
+                <span class="lbl">Kurzbiografie (optional)</span>
+                <textarea rows="3" formControlName="bio" placeholder="Erfahrung, Schwerpunkte, was die Person ausmacht …"></textarea>
+              </label>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>Foto</h2>
+            <div class="card__body">
+              <div class="avatar-upload" [class.has-image]="!!form.get('avatar')?.value">
+                @if (form.get('avatar')?.value) {
+                  <img [src]="form.get('avatar')?.value" alt="Avatar-Vorschau" class="avatar-preview avatar-preview--lg" />
+                  <div class="avatar-upload__actions">
+                    <label class="btn btn--ghost btn--sm">
+                      <span>Bild ändern</span>
+                      <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onAvatarChange($event)" hidden />
+                    </label>
+                    <button type="button" class="btn btn--ghost btn--sm" (click)="clearAvatar()">
+                      <span>Entfernen</span>
+                    </button>
+                  </div>
+                } @else {
+                  <label class="avatar-drop">
+                    <app-icon name="play" [size]="22" />
+                    <div>
+                      <strong>Bild hochladen</strong>
+                      <small>PNG, JPG oder WebP · max. 10 MB</small>
+                    </div>
+                    <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onAvatarChange($event)" hidden />
+                  </label>
+                }
+              </div>
+              <label class="color-picker">
+                <span class="lbl">Fallback-Farbe (für Initialen)</span>
+                <div class="color-picker__row">
+                  <input type="color" formControlName="avatarColor" />
+                  <code>{{ form.get('avatarColor')?.value }}</code>
+                </div>
+              </label>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>Kontakt</h2>
+            <div class="card__body grid-2">
+              <label>
+                <span class="lbl">E-Mail</span>
+                <input type="email" formControlName="email" placeholder="name@prosozial.de" />
+              </label>
+              <label>
+                <span class="lbl">Telefon</span>
+                <input type="text" formControlName="phone" placeholder="+49 …" />
+              </label>
+            </div>
+          </section>
+
+          <section class="card">
+            <h2>Schwerpunkte</h2>
+            <div class="card__body">
+              <label>
+                <span class="lbl">Tags (kommagetrennt)</span>
+                <input type="text" formControlName="expertise" placeholder="z.B. Mobilität, Alltagshilfen, Beratung" />
+                <small class="field-hint">Werden auf der öffentlichen Karte als kleine Chips angezeigt.</small>
+              </label>
+              <label style="max-width:200px; margin-top: var(--space-4)">
+                <span class="lbl">Sortierung</span>
+                <input type="number" formControlName="order" />
+                <small class="field-hint">Kleinere Zahl = weiter oben.</small>
+              </label>
+            </div>
+          </section>
+        </div>
+      </form>
+    </main>
+  </div>
+
+  <div class="savebar" [class.is-dirty]="dirty()" [class.is-saving]="saving()">
+    <div class="savebar__inner">
+      <div class="savebar__status">
+        @if (saving()) {
+          <span class="dot dot--saving"></span> Wird gespeichert …
+        } @else if (dirty()) {
+          <span class="dot dot--dirty"></span> Ungespeicherte Änderungen
+        } @else {
+          <app-icon name="check" [size]="14" /> Bereit
+        }
+      </div>
+      <div class="savebar__actions">
+        @if (!isNew()) {
+          <button type="button" class="btn btn--danger" (click)="deleteLecturer()" [disabled]="deleting()">
+            <app-icon name="trash" [size]="14" /> {{ deleting() ? 'Wird gelöscht …' : 'Löschen' }}
+          </button>
+        }
+        <button type="button" class="btn btn--ghost" (click)="cancel()">Abbrechen</button>
+        <button type="button" class="btn btn--primary" (click)="save()" [disabled]="form.invalid || saving()">
+          <app-icon name="check" [size]="16" />
+          {{ saving() ? 'Speichern …' : 'Speichern' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

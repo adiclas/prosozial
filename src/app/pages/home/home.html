@@ -443,29 +443,32 @@
         </div>
       </article>
 
-      <!-- Team -->
+      <!-- Lecturers (from global pool) -->
       <article class="team">
         <h3>{{ teamTitle() }}</h3>
         <p>{{ teamText() }}</p>
 
         <ul class="team__list">
-          @for (m of team(); track m.name) {
+          @for (l of topLecturers(); track l.id) {
             <li class="team__member">
-              <span class="team__avatar" [style.background]="m.avatarColor" aria-hidden="true">
-                {{ m.initials }}
+              <span class="team__avatar" [style.background]="l.avatarColor || 'var(--color-primary)'" aria-hidden="true">
+                @if (l.avatar) {
+                  <img [src]="l.avatar" alt="" />
+                } @else {
+                  {{ lecturerInitials(l.name) }}
+                }
               </span>
               <div class="team__meta">
-                <strong>{{ m.name }}</strong>
-                <small>{{ m.role }}</small>
-                <div class="team__stars" [attr.aria-label]="m.rating + ' von 5 Sternen'">
-                  @for (s of stars(m.rating); track s) {
-                    <app-icon name="star" [size]="14" />
-                  }
-                </div>
+                <strong>{{ l.name }}</strong>
+                <small>{{ l.role }}</small>
               </div>
             </li>
           }
         </ul>
+        <a routerLink="/seminars/lecturers" class="team__more" target="_blank">
+          Alle Dozent:innen ansehen
+          <app-icon name="arrow-right" [size]="12" />
+        </a>
       </article>
     </div>
   </div>

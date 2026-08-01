@@ -83,6 +83,29 @@ export interface SeminarLecturer {
   avatar?: string;
 }
 
+/**
+ * A lecturer in the global pool. Managed at /seminars/lecturers and
+ * referenced by id from any seminar (seminar.lecturerIds). This avoids
+ * duplicating the same person across multiple seminars.
+ */
+export interface Lecturer {
+  /** URL-safe slug, e.g. "anna-vogt". Used as the lookup key. */
+  id: string;
+  name: string;
+  role: string;
+  /** Image — data URL (uploaded) or external URL. */
+  avatar?: string;
+  /** Background color for the initials fallback, e.g. "#4daf6a". */
+  avatarColor?: string;
+  bio?: string;
+  email?: string;
+  phone?: string;
+  /** Tags shown as small chips on the public card, e.g. ["Pflege", "Demenz"]. */
+  expertise?: string[];
+  /** Display order (lower = first). */
+  order?: number;
+}
+
 export interface SeminarDocument {
   label: string;
   url: string;
@@ -107,7 +130,8 @@ export interface Seminar {
   /** Optional bullet points shown in the contents column. */
   bullets: string[];
   dates: SeminarDate[];
-  lecturers: SeminarLecturer[];
+  /** IDs of lecturers from the global pool (see Lecturer / SiteContent.lecturers). */
+  lecturerIds: string[];
   documents: SeminarDocument[];
 }
 
@@ -207,6 +231,8 @@ export interface SiteContent {
   videos: VideosContent;
   seminarsHeader: SectionHeader;
   seminars: SeminarsContent;
+  /** Global lecturer pool — managed at /seminars/lecturers. */
+  lecturers: Lecturer[];
   badgesHeader: SectionHeader;
   badges: BadgeContent[];
   guarantee: GuaranteeContent;

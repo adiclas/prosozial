@@ -186,7 +186,7 @@ const DEFAULT_CONTENT = {
             { time: '13:30 – 16:00', title: 'butler Finanztraining: Vermögen und Schulden Ihrer Betreuten' },
           ]},
         ],
-        lecturers: [{ name: 'Gehrmann, Silke (butler)', role: 'Trainerin' }],
+        lecturerIds: ['silke-gehrmann'],
         documents: [{ label: 'Anreiseübersicht.pdf', url: '/assets/seminars/anreiseuebersicht.pdf' }],
       },
       {
@@ -211,7 +211,7 @@ const DEFAULT_CONTENT = {
             { time: '13:00 – 15:00', title: 'Praxis-Workshop: Anträge ausfüllen' },
           ]},
         ],
-        lecturers: [{ name: 'Werner, Klaus', role: 'Pflegedienstleiter & Dozent' }],
+        lecturerIds: ['klaus-werner'],
         documents: [],
       },
     ],
@@ -267,6 +267,13 @@ const DEFAULT_CONTENT = {
     copyright: '© 2026 Prosozial GmbH · Alle Rechte vorbehalten',
     legal: [{ label: 'Impressum', href: '#' }, { label: 'Datenschutz', href: '#' }, { label: 'AGB', href: '#' }],
   },
+  lecturers: [
+    { id: 'silke-gehrmann', name: 'Silke Gehrmann', role: 'Trainerin · butler Customer Support', avatarColor: '#007F41', expertise: ['butler', 'Finanzverwaltung', 'Schulungen'], order: 1 },
+    { id: 'klaus-werner',   name: 'Klaus Werner',   role: 'Pflegedienstleiter & Dozent',     avatarColor: '#0f172a', expertise: ['Pflegekasse', 'Hilfsmittelverordnung'], order: 2 },
+    { id: 'anna-vogt',      name: 'Anna Vogt',      role: 'Hilfsmittel-Beraterin',           avatarColor: '#9ed4ad', expertise: ['Mobilität', 'Alltagshilfen', 'Beratung'], order: 3 },
+    { id: 'markus-lehner',  name: 'Markus Lehner',  role: 'Pflege-Spezialist',               avatarColor: '#74c189', expertise: ['Demenz', 'Häusliche Pflege'], order: 4 },
+    { id: 'sophia-bach',    name: 'Sophia Bach',    role: 'Ergotherapeutin',                 avatarColor: '#4daf6a', expertise: ['Therapie', 'Rehabilitation'], order: 5 },
+  ],
 };
 
 // ---- File I/O ----
@@ -277,11 +284,51 @@ function readContent() {
       return DEFAULT_CONTENT;
     }
     const raw = fs.readFileSync(DATA_FILE, 'utf8');
-    return { ...DEFAULT_CONTENT, ...JSON.parse(raw) };
+    const stored = JSON.parse(raw);
+    const merged = { ...DEFAULT_CONTENT, ...stored };
+
+    // One-time migration: if the global lecturer pool is empty but the
+    // old `team` field still has members, copy them over and persist.
+    if (
+      (!Array.isArray(merged.lecturers) || merged.lecturers.length === 0) &&
+      Array.isArray(merged.team) &&
+      merged.team.length > 0
+    ) {
+      merged.lecturers = merged.team.map((m, i) => ({
+        id: slugify(m.name) || `lecturer-${i + 1}`,
+        name: m.name,
+        role: m.role,
+        avatarColor: m.avatarColor,
+      }));
+      try { writeContent(merged); } catch { /* best-effort */ }
+    }
+
+    // Ensure every seminar has a lecturerIds array. If the old embedded
+    // `lecturers` array is present, drop it (lecturers live in the global
+    // pool now).
+    if (Array.isArray(merged.seminars?.seminars)) {
+      for (const s of merged.seminars.seminars) {
+        if (!Array.isArray(s.lecturerIds)) s.lecturerIds = [];
+        delete s.lecturers;
+      }
+    }
+
+    return merged;
   } catch (err) {
     console.error('[server] failed to read content.json, falling back to defaults:', err);
     return DEFAULT_CONTENT;
   }
+}
+
+function slugify(text) {
+  return (text || '')
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 60);
 }
 
 function writeContent(next) {
