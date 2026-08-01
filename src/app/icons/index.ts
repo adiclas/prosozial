@@ -11,7 +11,7 @@ import { lockIcon, userIcon } from './lock.icon';
 import { sparkleIcon, infoCircleIcon, triangleAlertIcon } from './specialty.icon';
 import { trophyIcon, pawPrintIcon } from './team.icon';
 import { rosetteCheckIcon, gaugeIcon, bulbIcon } from './badges.icon';
-import { copyIcon, sendIcon, accessibilityIcon, searchIcon, menuIcon } from './ui.icon';
+import { copyIcon, sendIcon, accessibilityIcon, searchIcon, menuIcon, refreshIcon } from './ui.icon';
 import {
   wheelchairIcon,
   cupIcon,
@@ -25,6 +25,7 @@ import {
   awardIcon,
   certificateIcon,
   playIcon,
+  settingsIcon,
 } from './static.icon';
 
 /**
@@ -63,6 +64,7 @@ export const ICONS = {
   accessibility: accessibilityIcon,
   search: searchIcon,
   menu: menuIcon,
+  refresh: refreshIcon,
 
   // Static (care-specific, no itshover equivalent)
   wheelchair: wheelchairIcon,
@@ -76,6 +78,7 @@ export const ICONS = {
   award: awardIcon,
   certificate: certificateIcon,
   play: playIcon,
+  settings: settingsIcon,
 } as const satisfies Record<string, IconDef>;
 
 export type IconName = keyof typeof ICONS;

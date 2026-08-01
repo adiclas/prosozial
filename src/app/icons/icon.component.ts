@@ -9,7 +9,25 @@ import {
   ViewChildren,
   inject,
 } from '@angular/core';
-import { ALL_TARGET, IconDef, SELF_TARGET } from './icon.types';
+import { ALL_TARGET, AnimProperty, IconDef, SELF_TARGET } from './icon.types';
+
+/**
+ * Properties whose keyframe values require a CSS unit appended.
+ * `rotate`/`rotateX`/`rotateY` need `deg`; `translateX`/`translateY` need `px`.
+ * Everything else (scale, opacity, pathLength, strokeDashoffset, …) is unitless.
+ */
+const PROPS_NEEDING_UNIT: Record<string, string> = {
+  rotate: 'deg',
+  rotateX: 'deg',
+  rotateY: 'deg',
+  translateX: 'px',
+  translateY: 'px',
+};
+
+function withUnit(prop: AnimProperty, values: number[]): (number | string)[] {
+  const unit = PROPS_NEEDING_UNIT[prop];
+  return unit ? values.map((v) => `${v}${unit}`) : values;
+}
 
 /**
  * Renders an itshover-style animated SVG icon.
@@ -94,18 +112,16 @@ export class ItshoverIcon implements AfterViewInit, OnDestroy {
     const steps = phase === 'in' ? this.def.hoverIn : this.def.hoverOut;
     for (const step of steps) {
       const els = this.resolve(step.target);
+      const keyframes = { [step.property]: withUnit(step.property, step.values) } as any;
       for (const el of els) {
         try {
-          const anim = el.animate(
-            { [step.property]: step.values },
-            {
-              duration: step.duration,
-              easing: step.ease ?? 'ease',
-              delay: step.delay ?? 0,
-              fill: 'none',
-              iterations: step.repeat ?? 1,
-            },
-          );
+          const anim = el.animate(keyframes, {
+            duration: step.duration,
+            easing: step.ease ?? 'ease',
+            delay: step.delay ?? 0,
+            fill: 'none',
+            iterations: step.repeat ?? 1,
+          });
           this.active.push(anim);
         } catch {
           // ignore unsupported property on this element

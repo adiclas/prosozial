@@ -1,0 +1,774 @@
+<div class="admin-shell">
+  <aside class="admin-sidebar">
+    <div class="admin-sidebar__brand">
+      <span class="admin-sidebar__title">Prosozial CMS</span>
+      @if (user(); as u) {
+        <span class="admin-sidebar__user">{{ u.email }} · {{ u.role }}</span>
+      }
+    </div>
+
+    <nav class="admin-nav" aria-label="CMS-Sektionen">
+      @for (group of groupedSections(); track group.name) {
+        <div class="admin-nav__group">
+          <h3 class="admin-nav__heading">{{ group.name }}</h3>
+          @for (item of group.items; track item.id) {
+            <button
+              type="button"
+              class="admin-nav__item"
+              [class.is-active]="active() === item.id"
+              (click)="setActive(item.id)"
+            >
+              {{ item.label }}
+            </button>
+          }
+        </div>
+      }
+    </nav>
+
+    <div class="admin-sidebar__actions">
+      <a routerLink="/" class="admin-sidebar__link" target="_blank">
+        <app-icon name="globe" [size]="16" /> Live-Seite ansehen
+      </a>
+      <button type="button" class="admin-sidebar__link" (click)="logout()">
+        <app-icon name="arrow-right" [size]="16" /> Logout
+      </button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+    <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <header class="admin-main__topbar">
+        <div>
+          <span class="eyebrow">Bearbeiten</span>
+          <h1>{{ activeSection().label }}</h1>
+        </div>
+        <div class="admin-main__actions">
+          @switch (status()) {
+            @case ('saving') {
+              <span class="admin-status admin-status--saving">
+                <span class="admin-status__dot"></span> Wird gespeichert …
+              </span>
+            }
+            @case ('saved') {
+              <span class="admin-status admin-status--saved">
+                <app-icon name="check" [size]="14" /> Auf Server gespeichert
+              </span>
+            }
+            @case ('error') {
+              <span class="admin-status admin-status--error" [title]="error() ?? ''">
+                <app-icon name="triangle-alert" [size]="14" /> {{ error() }}
+              </span>
+            }
+            @case ('loading') {
+              <span class="admin-status">
+                <span class="admin-status__dot"></span> Lade vom Server …
+              </span>
+            }
+          }
+          <button type="button" class="btn btn--ghost" (click)="refresh()" title="Vom Server neu laden">
+            <app-icon name="refresh" [size]="14" />
+          </button>
+          <button type="button" class="btn btn--ghost" (click)="reset()">Zurücksetzen</button>
+          <button type="submit" class="btn btn--primary" [disabled]="form.invalid || status() === 'saving'">
+            <app-icon name="check" [size]="16" /> Speichern
+          </button>
+        </div>
+      </header>
+
+      <!-- ============== HEADER ============== -->
+      @if (active() === 'header') {
+        <section class="card" formGroupName="header">
+          <h2>Marke &amp; Navigation</h2>
+          <div class="grid-2">
+            <label>
+              <span>Markenname</span>
+              <input type="text" formControlName="brand" />
+            </label>
+            <label>
+              <span>CTA-Link · Label</span>
+              <input type="text" formControlName="ctaLabel" />
+            </label>
+            <label>
+              <span>CTA-Link · Ziel</span>
+              <input type="text" formControlName="ctaHref" />
+            </label>
+          </div>
+
+          <h3>Navigationslinks</h3>
+          <div formArrayName="navLinks">
+            <div class="array-stack" cdkDropList (cdkDropListDropped)="drop($event, headerNavArr)">
+              @for (l of headerNavArr.controls; track l; let i = $index) {
+                <div class="array-row" [formGroupName]="i" cdkDrag>
+                  <button type="button" cdkDragHandle class="drag-handle" aria-label="Reihenfolge ändern">
+                    <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                      <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                      <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                    </svg>
+                  </button>
+                  <label>
+                    <span>Label</span>
+                    <input type="text" formControlName="label" />
+                  </label>
+                  <label>
+                    <span>Ziel</span>
+                    <input type="text" formControlName="href" />
+                  </label>
+                  <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(headerNavArr, i)" aria-label="Entfernen">
+                    <app-icon name="arrow-right" [size]="14" />
+                  </button>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn btn--ghost btn--sm" (click)="addTo(headerNavArr, newNavLink)">
+              + Navigationspunkt
+            </button>
+          </div>
+        </section>
+      }
+
+      <!-- ============== HERO ============== -->
+      @if (active() === 'hero') {
+        <section class="card" formGroupName="hero">
+          <h2>Hero — Schlagzeilen &amp; CTAs</h2>
+          <div class="grid-2">
+            <label class="span-2">
+              <span>Eyebrow</span>
+              <input type="text" formControlName="eyebrow" />
+            </label>
+            <label>
+              <span>Titel · Zeile 1</span>
+              <input type="text" formControlName="titleLine1" />
+            </label>
+            <label>
+              <span>Titel · Zeile 2</span>
+              <input type="text" formControlName="titleLine2" />
+            </label>
+            <label class="span-2 checkbox">
+              <input type="checkbox" formControlName="titleLine2Accent" />
+              <span>Zeile 2 in Grün hervorheben</span>
+            </label>
+            <label class="span-2">
+              <span>Lead-Absatz</span>
+              <textarea rows="3" formControlName="lead"></textarea>
+            </label>
+          </div>
+
+          <h3>Primärer Button</h3>
+          <div class="grid-2" formGroupName="ctaPrimary">
+            <label>
+              <span>Label</span>
+              <input type="text" formControlName="label" />
+            </label>
+            <label>
+              <span>Ziel</span>
+              <input type="text" formControlName="href" />
+            </label>
+          </div>
+
+          <h3>Sekundärer Button</h3>
+          <div class="grid-2" formGroupName="ctaSecondary">
+            <label>
+              <span>Label</span>
+              <input type="text" formControlName="label" />
+            </label>
+            <label>
+              <span>Ziel</span>
+              <input type="text" formControlName="href" />
+            </label>
+          </div>
+
+          <h3>Visitenkarte (rechts oben)</h3>
+          <div class="grid-2">
+            <label>
+              <span>Titel</span>
+              <input type="text" formControlName="cardTitle" />
+            </label>
+            <label>
+              <span>Untertitel</span>
+              <input type="text" formControlName="cardSubtitle" />
+            </label>
+            <label>
+              <span>Icon</span>
+              <select formControlName="cardIcon">
+                @for (n of iconNames; track n) {
+                  <option [value]="n">{{ n }}</option>
+                }
+              </select>
+            </label>
+            <label>
+              <span>Kleine Karte · Text</span>
+              <input type="text" formControlName="cardTopText" />
+            </label>
+            <label>
+              <span>Bewertung · Note</span>
+              <input type="text" formControlName="ratingScore" />
+            </label>
+            <label>
+              <span>Bewertung · Anzahl</span>
+              <input type="text" formControlName="ratingCount" />
+            </label>
+          </div>
+
+          <h3>Avatare</h3>
+          <div formArrayName="avatars">
+            <div class="avatar-list" cdkDropList (cdkDropListDropped)="drop($event, heroAvatars)">
+              @for (a of heroAvatars.controls; track a; let i = $index) {
+                <div class="array-row" [formGroupName]="i" cdkDrag>
+                  <button type="button" cdkDragHandle class="drag-handle" aria-label="Reihenfolge ändern">
+                    <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                      <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                      <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                    </svg>
+                  </button>
+                  <label>
+                    <span>Initialen</span>
+                    <input type="text" maxlength="2" formControlName="initials" />
+                  </label>
+                  <label>
+                    <span>Farbe</span>
+                    <input type="color" formControlName="color" />
+                  </label>
+                  <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(heroAvatars, i)" aria-label="Entfernen">
+                    <app-icon name="arrow-right" [size]="14" />
+                  </button>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn btn--ghost btn--sm" (click)="addTo(heroAvatars, newAvatar)">
+              + Avatar
+            </button>
+          </div>
+
+          <h3>Vertrauensleiste</h3>
+          <div formArrayName="trustItems">
+            <div class="array-stack" cdkDropList (cdkDropListDropped)="drop($event, heroTrustItems)">
+              @for (t of heroTrustItems.controls; track t; let i = $index) {
+                <div class="array-row" [formGroupName]="i" cdkDrag>
+                  <button type="button" cdkDragHandle class="drag-handle" aria-label="Reihenfolge ändern">
+                    <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                      <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                      <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                    </svg>
+                  </button>
+                  <label>
+                    <span>Icon</span>
+                    <select formControlName="icon">
+                      @for (n of iconNames; track n) {
+                        <option [value]="n">{{ n }}</option>
+                      }
+                    </select>
+                  </label>
+                  <label class="grow">
+                    <span>Text</span>
+                    <input type="text" formControlName="label" />
+                  </label>
+                  <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(heroTrustItems, i)" aria-label="Entfernen">
+                    <app-icon name="arrow-right" [size]="14" />
+                  </button>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn btn--ghost btn--sm" (click)="addTo(heroTrustItems, newTrustItem)">
+              + Vertrauenspunkt
+            </button>
+          </div>
+        </section>
+      }
+
+      <!-- ============== SECTION HEADERS ============== -->
+      @if (active() === 'featuresHeader' || active() === 'servicesHeader' || active() === 'videosHeader' || active() === 'badgesHeader') {
+        @let key = active() === 'featuresHeader' ? 'featuresHeader' :
+                   active() === 'servicesHeader' ? 'servicesHeader' :
+                   active() === 'videosHeader' ? 'videosHeader' : 'badgesHeader';
+        <section class="card" [formGroupName]="key">
+          <h2>Sektions-Header</h2>
+          <div class="grid-2">
+            <label class="span-2">
+              <span>Eyebrow</span>
+              <input type="text" formControlName="eyebrow" />
+            </label>
+            <label class="span-2">
+              <span>Titel</span>
+              <input type="text" formControlName="title" />
+            </label>
+            <label class="span-2">
+              <span>Untertitel</span>
+              <textarea rows="2" formControlName="text"></textarea>
+            </label>
+          </div>
+        </section>
+      }
+
+      <!-- ============== FEATURES ============== -->
+      @if (active() === 'features') {
+        <section class="card">
+          <h2>Feature-Karten</h2>
+          <div formArrayName="features">
+            <div class="cards-stack" cdkDropList (cdkDropListDropped)="drop($event, featuresArr)">
+              @for (f of featuresArr.controls; track f; let i = $index) {
+                <div class="card card--sub card--draggable" [formGroupName]="i" cdkDrag>
+                  <header class="card__head">
+                    <button type="button" cdkDragHandle class="drag-handle drag-handle--lg" aria-label="Reihenfolge ändern">
+                      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+                        <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                        <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                      </svg>
+                    </button>
+                    <strong>Karte {{ i + 1 }}</strong>
+                    <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(featuresArr, i)" aria-label="Entfernen">
+                      <app-icon name="arrow-right" [size]="14" />
+                    </button>
+                  </header>
+                  <div class="grid-2">
+                    <label>
+                      <span>Titel</span>
+                      <input type="text" formControlName="title" />
+                    </label>
+                    <label>
+                      <span>Icon</span>
+                      <select formControlName="icon">
+                        @for (n of iconNames; track n) { <option [value]="n">{{ n }}</option> }
+                      </select>
+                    </label>
+                    <label class="span-2">
+                      <span>Beschreibung</span>
+                      <textarea rows="2" formControlName="description"></textarea>
+                    </label>
+                    <label>
+                      <span>CTA-Text</span>
+                      <input type="text" formControlName="cta" />
+                    </label>
+                    <label class="checkbox">
+                      <input type="checkbox" formControlName="highlight" />
+                      <span>Hervorheben (dunkelgrün)</span>
+                    </label>
+                  </div>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn btn--ghost" (click)="addTo(featuresArr, newFeature)">+ Karte</button>
+          </div>
+        </section>
+      }
+
+      <!-- ============== SERVICES ============== -->
+      @if (active() === 'services') {
+        <section class="card">
+          <h2>Service-Karten</h2>
+          <div formArrayName="services">
+            <div class="cards-stack" cdkDropList (cdkDropListDropped)="drop($event, servicesArr)">
+              @for (s of servicesArr.controls; track s; let i = $index) {
+                <div class="card card--sub card--draggable" [formGroupName]="i" cdkDrag>
+                  <header class="card__head">
+                    <button type="button" cdkDragHandle class="drag-handle drag-handle--lg" aria-label="Reihenfolge ändern">
+                      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+                        <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                        <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                      </svg>
+                    </button>
+                    <strong>Karte {{ i + 1 }}</strong>
+                    <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(servicesArr, i)" aria-label="Entfernen">
+                      <app-icon name="arrow-right" [size]="14" />
+                    </button>
+                  </header>
+                  <div class="grid-2">
+                    <label>
+                      <span>Titel</span>
+                      <input type="text" formControlName="title" />
+                    </label>
+                    <label>
+                      <span>Icon</span>
+                      <select formControlName="icon">
+                        @for (n of iconNames; track n) { <option [value]="n">{{ n }}</option> }
+                      </select>
+                    </label>
+                    <label class="span-2">
+                      <span>Beschreibung</span>
+                      <textarea rows="2" formControlName="description"></textarea>
+                    </label>
+                  </div>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn btn--ghost" (click)="addTo(servicesArr, newService)">+ Karte</button>
+          </div>
+        </section>
+      }
+
+      <!-- ============== SHOWCASE ============== -->
+      @if (active() === 'showcase') {
+        <section class="card" formGroupName="showcase">
+          <h2>Vorher / Nachher</h2>
+          <div class="grid-2">
+            <label><span>Vorher · Label</span><input type="text" formControlName="beforeLabel" /></label>
+            <label><span>Nachher · Label</span><input type="text" formControlName="afterLabel" /></label>
+            <label><span>Vorher · Titel</span><input type="text" formControlName="beforeTitle" /></label>
+            <label><span>Nachher · Titel</span><input type="text" formControlName="afterTitle" /></label>
+            <label><span>Vorher · Notiz</span><input type="text" formControlName="beforeNote" /></label>
+            <label><span>Nachher · Notiz</span><input type="text" formControlName="afterNote" /></label>
+          </div>
+          <h3>3 Schritte</h3>
+          <div class="grid-2">
+            <label><span>Schritt 1 · Titel</span><input type="text" formControlName="step1Title" /></label>
+            <label><span>Schritt 1 · Text</span><input type="text" formControlName="step1Text" /></label>
+            <label><span>Schritt 2 · Titel</span><input type="text" formControlName="step2Title" /></label>
+            <label><span>Schritt 2 · Text</span><input type="text" formControlName="step2Text" /></label>
+            <label><span>Schritt 3 · Titel</span><input type="text" formControlName="step3Title" /></label>
+            <label><span>Schritt 3 · Text</span><input type="text" formControlName="step3Text" /></label>
+          </div>
+        </section>
+      }
+
+      <!-- ============== VIDEOS (YouTube) ============== -->
+      @if (active() === 'videos') {
+        <section class="card" formGroupName="videos">
+          <h2>YouTube-Playlist</h2>
+          <p class="text-muted" style="margin: 0 0 var(--space-4); font-size: var(--fs-sm)">
+            Die <strong>Playlist-URL</strong> wird für den „Tout lire"-Link und als Fallback verwendet.
+            Die <strong>Video-IDs</strong> (eine pro Zeile) bestimmen die Liste in der
+            Detailansicht — Titel und Thumbnails werden automatisch per YouTube oEmbed geladen.
+          </p>
+          <div class="grid-2">
+            <label class="span-2">
+              <span>Playlist-URL</span>
+              <input
+                type="url"
+                formControlName="playlistUrl"
+                placeholder="https://www.youtube.com/playlist?list=…"
+              />
+            </label>
+            <label class="span-2">
+              <span>Video-IDs oder URLs (eine pro Zeile)</span>
+              <textarea
+                rows="6"
+                formControlName="videoIds"
+                placeholder="g1mEFsG2Ebg&#10;https://youtu.be/abcDEF12345&#10;…"
+                style="font-family: ui-monospace, SFMono-Regular, monospace; font-size: var(--fs-sm)"
+              ></textarea>
+            </label>
+          </div>
+        </section>
+      }
+
+      <!-- ============== BADGES ============== -->
+      @if (active() === 'badges') {
+        <section class="card">
+          <h2>Zertifikate / Vertrauenssiegel</h2>
+          <div formArrayName="badges">
+            <div class="cards-stack" cdkDropList (cdkDropListDropped)="drop($event, badgesArr)">
+              @for (b of badgesArr.controls; track b; let i = $index) {
+                <div class="card card--sub card--draggable" [formGroupName]="i" cdkDrag>
+                  <header class="card__head">
+                    <button type="button" cdkDragHandle class="drag-handle drag-handle--lg" aria-label="Reihenfolge ändern">
+                      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+                        <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                        <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                      </svg>
+                    </button>
+                    <strong>Siegel {{ i + 1 }}</strong>
+                    <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(badgesArr, i)" aria-label="Entfernen">
+                      <app-icon name="arrow-right" [size]="14" />
+                    </button>
+                  </header>
+                  <div class="grid-2">
+                    <label><span>Titel</span><input type="text" formControlName="title" /></label>
+                    <label><span>Icon</span>
+                      <select formControlName="icon">
+                        @for (n of iconNames; track n) { <option [value]="n">{{ n }}</option> }
+                      </select>
+                    </label>
+                    <label class="span-2"><span>Beschreibung</span><textarea rows="2" formControlName="description"></textarea></label>
+                  </div>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn btn--ghost" (click)="addTo(badgesArr, newBadge)">+ Siegel</button>
+          </div>
+        </section>
+      }
+
+      <!-- ============== GUARANTEE ============== -->
+      @if (active() === 'guarantee') {
+        <section class="card" formGroupName="guarantee">
+          <h2>Zufriedenheits-Garantie</h2>
+          <div class="grid-2">
+            <label class="span-2"><span>Titel</span><input type="text" formControlName="title" /></label>
+            <label class="span-2"><span>Text</span><textarea rows="3" formControlName="text"></textarea></label>
+            <label>
+              <span>Siegel-Icon</span>
+              <select formControlName="sealIcon">
+                @for (n of iconNames; track n) { <option [value]="n">{{ n }}</option> }
+              </select>
+            </label>
+          </div>
+          <h3>Garantiepunkte</h3>
+          <div formArrayName="items">
+            <div class="array-stack" cdkDropList (cdkDropListDropped)="drop($event, guaranteeItemsArr)">
+              @for (i of guaranteeItemsArr.controls; track i; let idx = $index) {
+                <div class="array-row single" cdkDrag>
+                  <button type="button" cdkDragHandle class="drag-handle" aria-label="Reihenfolge ändern">
+                    <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                      <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                      <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                    </svg>
+                  </button>
+                  <label class="grow">
+                    <span>Punkt</span>
+                    <input type="text" [formControl]="asControl(i)" />
+                  </label>
+                  <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(guaranteeItemsArr, idx)" aria-label="Entfernen">
+                    <app-icon name="arrow-right" [size]="14" />
+                  </button>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn btn--ghost btn--sm" (click)="addStringItem(guaranteeItemsArr)">
+              + Punkt
+            </button>
+          </div>
+        </section>
+      }
+
+      <!-- ============== PLANS ============== -->
+      @if (active() === 'plans') {
+        <section class="card">
+          <h2>Preispläne</h2>
+          <div formArrayName="plans">
+            <div class="cards-stack" cdkDropList (cdkDropListDropped)="drop($event, plansArr)">
+              @for (p of plansArr.controls; track p; let i = $index) {
+                <div class="card card--sub card--draggable" [formGroupName]="i" cdkDrag>
+                  <header class="card__head">
+                    <button type="button" cdkDragHandle class="drag-handle drag-handle--lg" aria-label="Reihenfolge ändern">
+                      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+                        <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                        <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                      </svg>
+                    </button>
+                    <strong>Plan {{ i + 1 }}</strong>
+                    <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(plansArr, i)" aria-label="Entfernen">
+                      <app-icon name="arrow-right" [size]="14" />
+                    </button>
+                  </header>
+                  <div class="grid-2">
+                    <label><span>Name</span><input type="text" formControlName="name" /></label>
+                    <label><span>Badge (z.B. Beliebt)</span><input type="text" formControlName="badge" /></label>
+                    <label><span>Preis</span><input type="text" formControlName="price" /></label>
+                    <label><span>Periode</span><input type="text" formControlName="period" /></label>
+                    <label class="span-2"><span>Beschreibung</span><textarea rows="2" formControlName="description"></textarea></label>
+                    <label><span>CTA-Label</span><input type="text" formControlName="cta" /></label>
+                    <label>
+                      <span>Variante</span>
+                      <select formControlName="variant">
+                        <option value="basic">Basic</option>
+                        <option value="featured">Featured</option>
+                        <option value="premium">Premium</option>
+                      </select>
+                    </label>
+                  </div>
+                  <h4>Leistungen</h4>
+                  <div formArrayName="features">
+                    <div class="array-stack" cdkDropList (cdkDropListDropped)="drop($event, planFeaturesAt(i))">
+                      @for (f of planFeaturesAt(i).controls; track f; let j = $index) {
+                        <div class="array-row single" cdkDrag>
+                          <button type="button" cdkDragHandle class="drag-handle" aria-label="Reihenfolge ändern">
+                            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                              <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                              <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                            </svg>
+                          </button>
+                          <label class="grow">
+                            <span>Leistung</span>
+                            <input type="text" [formControl]="asControl(f)" />
+                          </label>
+                          <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(planFeaturesAt(i), j)" aria-label="Entfernen">
+                            <app-icon name="arrow-right" [size]="14" />
+                          </button>
+                        </div>
+                      }
+                    </div>
+                    <button type="button" class="btn btn--ghost btn--sm" (click)="addStringItem(planFeaturesAt(i))">
+                      + Leistung
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn btn--ghost" (click)="addTo(plansArr, newPlan)">+ Plan</button>
+          </div>
+        </section>
+      }
+
+      <!-- ============== TEAM ============== -->
+      @if (active() === 'team') {
+        <section class="card" formGroupName="team">
+          <h2>Beratungsteam</h2>
+          <div class="grid-2">
+            <label class="span-2"><span>Titel</span><input type="text" formControlName="teamTitle" /></label>
+            <label class="span-2"><span>Text</span><textarea rows="2" formControlName="teamText"></textarea></label>
+          </div>
+          <h3>Teammitglieder</h3>
+          <div formArrayName="team">
+            <div class="cards-stack" cdkDropList (cdkDropListDropped)="drop($event, teamMembersArr)">
+              @for (m of teamMembersArr.controls; track m; let i = $index) {
+                <div class="card card--sub card--draggable" [formGroupName]="i" cdkDrag>
+                  <header class="card__head">
+                    <button type="button" cdkDragHandle class="drag-handle drag-handle--lg" aria-label="Reihenfolge ändern">
+                      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+                        <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                        <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                      </svg>
+                    </button>
+                    <strong>Mitglied {{ i + 1 }}</strong>
+                    <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(teamMembersArr, i)" aria-label="Entfernen">
+                      <app-icon name="arrow-right" [size]="14" />
+                    </button>
+                  </header>
+                  <div class="grid-2">
+                    <label><span>Name</span><input type="text" formControlName="name" /></label>
+                    <label><span>Rolle</span><input type="text" formControlName="role" /></label>
+                    <label><span>Initialen</span><input type="text" maxlength="3" formControlName="initials" /></label>
+                    <label><span>Bewertung (1–5)</span><input type="number" min="1" max="5" formControlName="rating" /></label>
+                    <label><span>Avatar-Farbe</span><input type="color" formControlName="avatarColor" /></label>
+                  </div>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn btn--ghost" (click)="addTo(teamMembersArr, newTeamMember)">+ Mitglied</button>
+          </div>
+        </section>
+      }
+
+      <!-- ============== CTA STRIP ============== -->
+      @if (active() === 'ctaStrip') {
+        <section class="card" formGroupName="ctaStrip">
+          <h2>CTA-Streifen (dunkelgrün)</h2>
+          <div class="grid-2">
+            <label class="span-2"><span>Eyebrow</span><input type="text" formControlName="eyebrow" /></label>
+            <label class="span-2"><span>Titel</span><input type="text" formControlName="title" /></label>
+            <label class="span-2"><span>Text</span><textarea rows="3" formControlName="text"></textarea></label>
+            <label><span>CTA · Label</span><input type="text" formControlName="ctaLabel" /></label>
+            <label><span>CTA · Ziel</span><input type="text" formControlName="ctaHref" /></label>
+            <label><span>Telefon · Label</span><input type="text" formControlName="phoneLabel" /></label>
+            <label><span>Telefon · Ziel</span><input type="text" formControlName="phoneHref" /></label>
+          </div>
+        </section>
+      }
+
+      <!-- ============== FOOTER ============== -->
+      @if (active() === 'footer') {
+        <section class="card" formGroupName="footer">
+          <h2>Footer</h2>
+          <div class="grid-2">
+            <label><span>Marke</span><input type="text" formControlName="brand" /></label>
+            <label><span>Copyright</span><input type="text" formControlName="copyright" /></label>
+            <label class="span-2"><span>Beschreibung</span><textarea rows="2" formControlName="description"></textarea></label>
+          </div>
+
+          <h3>Kontakt</h3>
+          <div formArrayName="contact">
+            <div class="array-stack" cdkDropList (cdkDropListDropped)="drop($event, footerContactArr)">
+              @for (c of footerContactArr.controls; track c; let i = $index) {
+                <div class="array-row" [formGroupName]="i" cdkDrag>
+                  <button type="button" cdkDragHandle class="drag-handle" aria-label="Reihenfolge ändern">
+                    <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                      <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                      <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                    </svg>
+                  </button>
+                  <label>
+                    <span>Icon</span>
+                    <select formControlName="icon">
+                      @for (n of iconNames; track n) { <option [value]="n">{{ n }}</option> }
+                    </select>
+                  </label>
+                  <label class="grow">
+                    <span>Text</span>
+                    <input type="text" formControlName="text" />
+                  </label>
+                  <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(footerContactArr, i)" aria-label="Entfernen">
+                    <app-icon name="arrow-right" [size]="14" />
+                  </button>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn btn--ghost btn--sm" (click)="addTo(footerContactArr, newContact)">+ Kontakt</button>
+          </div>
+
+          <h3>Spalten</h3>
+          <div formArrayName="columns">
+            <div class="cards-stack" cdkDropList (cdkDropListDropped)="drop($event, footerColumnsArr)">
+              @for (col of footerColumnsArr.controls; track col; let i = $index) {
+                <div class="card card--sub card--draggable" [formGroupName]="i" cdkDrag>
+                  <header class="card__head">
+                    <button type="button" cdkDragHandle class="drag-handle drag-handle--lg" aria-label="Reihenfolge ändern">
+                      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+                        <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                        <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                      </svg>
+                    </button>
+                    <strong>Spalte {{ i + 1 }}</strong>
+                    <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(footerColumnsArr, i)" aria-label="Entfernen">
+                      <app-icon name="arrow-right" [size]="14" />
+                    </button>
+                  </header>
+                  <label><span>Titel</span><input type="text" formControlName="title" /></label>
+                    <h4>Links</h4>
+                  <div formArrayName="links">
+                    <div class="array-stack" cdkDropList (cdkDropListDropped)="drop($event, footerColumnLinksAt(i))">
+                      @for (l of footerColumnLinksAt(i).controls; track l; let j = $index) {
+                        <div class="array-row" [formGroupName]="j" cdkDrag>
+                          <button type="button" cdkDragHandle class="drag-handle" aria-label="Reihenfolge ändern">
+                            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                              <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                              <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                            </svg>
+                          </button>
+                          <label><span>Label</span><input type="text" formControlName="label" /></label>
+                          <label><span>Ziel</span><input type="text" formControlName="href" /></label>
+                          <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(footerColumnLinksAt(i), j)" aria-label="Entfernen">
+                            <app-icon name="arrow-right" [size]="14" />
+                          </button>
+                        </div>
+                      }
+                    </div>
+                    <button type="button" class="btn btn--ghost btn--sm" (click)="addTo(footerColumnLinksAt(i), newColumnLink)">+ Link</button>
+                  </div>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn btn--ghost" (click)="addTo(footerColumnsArr, newColumn)">+ Spalte</button>
+          </div>
+
+          <h3>Rechtliches</h3>
+          <div formArrayName="legal">
+            <div class="array-stack" cdkDropList (cdkDropListDropped)="drop($event, footerLegalArr)">
+              @for (l of footerLegalArr.controls; track l; let i = $index) {
+                <div class="array-row" [formGroupName]="i" cdkDrag>
+                  <button type="button" cdkDragHandle class="drag-handle" aria-label="Reihenfolge ändern">
+                    <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                      <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                      <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                    </svg>
+                  </button>
+                  <label><span>Label</span><input type="text" formControlName="label" /></label>
+                  <label><span>Ziel</span><input type="text" formControlName="href" /></label>
+                  <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(footerLegalArr, i)" aria-label="Entfernen">
+                    <app-icon name="arrow-right" [size]="14" />
+                  </button>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn btn--ghost btn--sm" (click)="addTo(footerLegalArr, newLegal)">+ Rechtliches</button>
+          </div>
+        </section>
+      }
+
+      <div class="admin-main__footer">
+        <button type="button" class="btn btn--ghost" (click)="reset()">Zurücksetzen</button>
+        <button type="submit" class="btn btn--primary" [disabled]="form.invalid || status() === 'saving'">
+          <app-icon name="check" [size]="16" /> Speichern
+        </button>
+      </div>
+    </form>
+  </main>
+</div>

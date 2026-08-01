@@ -1,0 +1,389 @@
+:host { display: block; min-height: 100dvh; background: var(--color-ink-25); }
+
+.admin-shell {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 100dvh;
+}
+
+/* ---------- Sidebar ---------- */
+.admin-sidebar {
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-ink-900);
+  color: rgba(255, 255, 255, 0.85);
+  padding: var(--space-6) var(--space-4);
+  overflow-y: auto;
+}
+
+.admin-sidebar__brand {
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: var(--space-4);
+}
+
+.admin-sidebar__title {
+  display: block;
+  font-weight: 700;
+  font-size: var(--fs-lg);
+  color: #fff;
+}
+
+.admin-sidebar__user {
+  display: block;
+  font-size: var(--fs-xs);
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: var(--space-1);
+  word-break: break-all;
+}
+
+.admin-nav { flex: 1; }
+
+.admin-nav__group { margin-bottom: var(--space-5); }
+
+.admin-nav__heading {
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0 0 var(--space-2);
+  padding: 0 var(--space-3);
+}
+
+.admin-nav__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
+  color: rgba(255, 255, 255, 0.7);
+  transition: background 120ms ease, color 120ms ease;
+  margin-bottom: 2px;
+
+  &:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+  &.is-active { background: var(--color-primary); color: #fff; }
+}
+
+.admin-sidebar__actions {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.admin-sidebar__link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: var(--fs-sm);
+  color: rgba(255, 255, 255, 0.7);
+  transition: background 120ms ease, color 120ms ease;
+  text-align: left;
+  width: 100%;
+
+  &:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+}
+
+/* ---------- Main ---------- */
+.admin-main {
+  padding: var(--space-6) var(--space-8);
+  max-width: 960px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.admin-main__topbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-6);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+
+  h1 { margin: var(--space-2) 0 0; font-size: var(--fs-3xl); }
+  .eyebrow { color: var(--color-primary); }
+}
+
+.admin-main__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.admin-saved {
+  font-size: var(--fs-sm);
+  color: var(--color-primary);
+  font-weight: var(--fw-semibold);
+}
+
+.admin-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-500);
+  font-weight: var(--fw-medium);
+
+  &--saving { color: var(--color-accent-600); }
+  &--saved  { color: var(--color-primary); }
+  &--error  { color: #b91c1c; max-width: 360px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+}
+
+.admin-status__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; transform: scale(0.85); }
+  50%      { opacity: 1;   transform: scale(1.1); }
+}
+
+.admin-main__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-6) 0;
+  margin-top: var(--space-6);
+  border-top: 1px solid var(--color-border);
+}
+
+/* ---------- Form ---------- */
+.card {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-5);
+
+  h2 {
+    margin: 0 0 var(--space-4);
+    font-size: var(--fs-xl);
+  }
+  h3 {
+    margin: var(--space-5) 0 var(--space-3);
+    font-size: var(--fs-md);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-ink-500);
+  }
+  h4 {
+    margin: var(--space-3) 0 var(--space-2);
+    font-size: var(--fs-sm);
+    color: var(--color-ink-500);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+}
+
+.card--sub {
+  background: var(--color-ink-25);
+  border-style: dashed;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3) var(--space-4);
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-size: var(--fs-sm);
+  color: var(--color-ink-700);
+
+  &.span-2 { grid-column: 1 / -1; }
+  &.grow { flex: 1; }
+  &.checkbox {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-2);
+    input { width: auto; margin: 0; }
+  }
+  > span {
+    font-weight: var(--fw-medium);
+    color: var(--color-ink-600);
+  }
+}
+
+input[type='text'],
+input[type='email'],
+input[type='url'],
+input[type='number'],
+input:not([type]),
+textarea,
+select {
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--color-ink-200);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  background: #fff;
+  font-family: inherit;
+  color: var(--color-ink-900);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+
+  &:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(0, 127, 65, 0.15);
+  }
+}
+
+textarea { resize: vertical; min-height: 60px; }
+
+input[type='color'] {
+  width: 100%;
+  height: 38px;
+  padding: 2px;
+  border: 1px solid var(--color-ink-200);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.array-stack,
+.cards-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.avatar-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.btn--sm {
+  padding: 0.4rem 0.65rem;
+  font-size: var(--fs-xs);
+}
+
+/* ============================================================
+   Drag & Drop (Angular CDK)
+   ============================================================ */
+
+// Grip handle — only this starts a drag
+.drag-handle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  color: var(--color-ink-400);
+  cursor: grab;
+  align-self: end;
+  margin-bottom: 1px;
+  transition: color 120ms ease, background 120ms ease;
+
+  &:hover { color: var(--color-primary); background: var(--color-brand-50); }
+  &:active { cursor: grabbing; }
+}
+
+.drag-handle--lg {
+  width: 32px;
+  height: 32px;
+}
+
+// Make a draggable card slightly interactive at rest
+.card--draggable {
+  transition: box-shadow 160ms ease, transform 160ms ease;
+}
+
+.card__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+
+  strong { color: var(--color-ink-900); flex: 1; }
+}
+
+// Array rows: keep the drag handle in the grid
+.array-row {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr auto;
+  gap: var(--space-3);
+  align-items: end;
+  padding: var(--space-3);
+  background: var(--color-ink-25);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+
+  &.single { grid-template-columns: auto 1fr auto; }
+  > button { margin-bottom: 1px; }
+}
+
+/* ---- CDK overrides ---- */
+.cdk-drop-list-dragging .cdk-drag {
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+// The card being dragged (sits above the layout, follows the cursor)
+.cdk-drag-preview {
+  background: #fff;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-brand-200);
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18), 0 0 0 4px rgba(0, 127, 65, 0.1);
+  padding: var(--space-3);
+  // CDK sets the box from the original element, so a card preview
+  // looks like a floating card.
+}
+
+// The placeholder where the item will land
+.cdk-drag-placeholder {
+  opacity: 0;
+  // CDK inserts an empty clone; we want to show a subtle dashed slot
+  // instead, so we override the inserted element via the .cdk-drag-placeholder
+  // + box-shadow trick below.
+  min-height: 56px;
+  border: 2px dashed var(--color-brand-300);
+  border-radius: var(--radius-md);
+  background: var(--color-brand-50);
+  transition: min-height 160ms ease;
+}
+
+// While the placeholder is being shown, hide the original
+.cdk-drag-placeholder + .cdk-drag {
+  display: none;
+}
+
+// Animate drop
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+// Subtle cue on the row when hovered (not actively dragging)
+.array-row:hover .drag-handle,
+.card--draggable:hover .drag-handle {
+  color: var(--color-ink-600);
+}
+
+@media (max-width: 900px) {
+  .admin-shell { grid-template-columns: 1fr; }
+  .admin-sidebar {
+    position: static;
+    height: auto;
+    padding: var(--space-4);
+  }
+  .admin-nav { max-height: none; }
+  .grid-2 { grid-template-columns: 1fr; }
+  .array-row { grid-template-columns: 1fr; }
+  .admin-main { padding: var(--space-4); }
+}

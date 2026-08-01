@@ -78,3 +78,16 @@ export const menuIcon: IconDef = {
     { target: 'line-3', property: 'translateX', values: [0], duration: 200 },
   ],
 };
+
+/** Refresh / reload - circular arrow that spins on hover. */
+export const refreshIcon: IconDef = {
+  parts: [
+    { id: 'arrow', d: 'M3 12a9 9 0 0 1 15.5 -6.3L21 8 M21 3v5h-5 M21 12a9 9 0 0 1 -15.5 6.3L3 16 M3 21v-5h5', transformOrigin: 'center' },
+  ],
+  hoverIn: [
+    { target: 'arrow', property: 'rotate', values: [0, 360], duration: 600, ease: 'ease-in-out' },
+  ],
+  hoverOut: [
+    { target: 'arrow', property: 'rotate', values: [0], duration: 200 },
+  ],
+};

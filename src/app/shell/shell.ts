@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../core/auth.service';
 import { Icon } from '../shared/icon';
@@ -19,6 +19,11 @@ import { Icon } from '../shared/icon';
         <a routerLink="/profile" routerLinkActive="active">
           <app-icon name="badge-leaf" [size]="16" /> Profil
         </a>
+        @if (isAdmin()) {
+          <a routerLink="/admin" routerLinkActive="active">
+            <app-icon name="settings" [size]="16" /> Admin
+          </a>
+        }
       </nav>
       <div class="user">
         @if (user(); as u) {
@@ -70,6 +75,7 @@ import { Icon } from '../shared/icon';
 export class Shell {
   private readonly auth = inject(AuthService);
   readonly user = this.auth.user;
+  readonly isAdmin = computed(() => this.user()?.role === 'admin');
 
   logout(): void {
     this.auth.logout();
