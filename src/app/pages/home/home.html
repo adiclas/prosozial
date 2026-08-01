@@ -7,8 +7,15 @@
 
     <nav class="primary-nav" aria-label="Hauptnavigation">
       @for (link of header().navLinks; track link.href) {
-        <a [href]="link.href">{{ link.label }}</a>
+        @if (link.href.startsWith('http')) {
+          <a [href]="link.href" target="_blank" rel="noopener">{{ link.label }}</a>
+        } @else if (link.href.startsWith('/') && !link.href.startsWith('/#')) {
+          <a [routerLink]="link.href">{{ link.label }}</a>
+        } @else {
+          <a [href]="link.href">{{ link.label }}</a>
+        }
       }
+      <a routerLink="/seminars" class="primary-nav__seminars">Seminare</a>
     </nav>
 
     <div class="site-header__actions">
@@ -236,14 +243,21 @@
         <!-- Left: featured player + meta -->
         <div class="yt-feature">
           <div class="yt-player">
-            @if (activeEmbedUrl(); as embed) {
+            @if (safeActiveEmbed(); as embed) {
               <iframe
                 [src]="embed"
-                title="YouTube video player"
+                [title]="activeVideo()?.title || 'YouTube video player'"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 allowfullscreen
                 referrerpolicy="strict-origin-when-cross-origin"
               ></iframe>
+            } @else if (activeVideo(); as v) {
+              <button type="button" class="yt-player__poster" (click)="startPlayer()" [attr.aria-label]="'Video abspielen: ' + v.title">
+                <img [src]="v.thumbnail" [alt]="v.title" (error)="onThumbError($event)" />
+                <span class="yt-player__play" aria-hidden="true" tabindex="-1">
+                  <app-icon name="play" [size]="36" />
+                </span>
+              </button>
             }
           </div>
 
@@ -304,17 +318,27 @@
             >
               <button type="button" class="yt-item__btn" (click)="selectVideo(v.id)">
                 <span class="yt-item__thumb" aria-hidden="true">
-                  <img [src]="v.thumbnail" [alt]="v.title" loading="lazy" />
-                  <span class="yt-item__thumb-icon">
+                  <img
+                    [src]="v.thumbnail"
+                    [alt]="v.title"
+                    loading="lazy"
+                    (error)="onThumbError($event)"
+                  />
+                  <span class="yt-item__thumb-icon" aria-hidden="true" tabindex="-1">
                     <app-icon name="play" [size]="14" />
                   </span>
                 </span>
                 <span class="yt-item__meta">
-                  <strong class="yt-item__title">{{ v.title }}</strong>
+                  <strong class="yt-item__title">
+                    {{ v.title }}
+                    @if (v.error) {
+                      <span class="yt-item__badge" title="Video nicht gefunden — ID prüfen">⚠ fehlt</span>
+                    }
+                  </strong>
                   <span class="yt-item__sub">{{ v.author || 'prosozial TV' }}</span>
                 </span>
-                <span class="yt-item__menu" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <span class="yt-item__menu" aria-hidden="true" tabindex="-1">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" focusable="false">
                     <circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>
                   </svg>
                 </span>
@@ -323,7 +347,7 @@
           }
         </ul>
       </div>
-    } @else if (playlistEmbedUrl(); as embed) {
+    } @else if (safePlaylistEmbed(); as embed) {
       <!-- Fallback: no video IDs configured, show the simple playlist embed -->
       <div class="video-frame">
         <iframe

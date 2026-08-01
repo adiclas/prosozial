@@ -113,7 +113,107 @@ export const DEFAULT_CONTENT: SiteContent = {
   },
   videos: {
     playlistUrl: 'https://www.youtube.com/playlist?list=PLzQVhNQUOyxEIqAc3h4Q5K0qpBDbqAG33',
-    videoIds: ['g1mEFsG2Ebg', 'hXBgPzS3CuE', '4YvU0Ag9Kbg', '2vIXYYp9z2w'],
+    // Real prosozial TV video IDs (first 6 of 31), pulled from the public
+    // Invidious playlist API. The admin can add/remove any of the 31 via
+    // /admin → Videos → YouTube-Playlist → Video-IDs.
+    videoIds: [
+      'ehP_2yoCyxo', // Ausbildung und Spaß bei prosozial!
+      'scclA6RDcsw', // BFW-Hausmesse 2025 – prosozial mittendrin …
+      'zJL-JWnbGmo', // Koblenz, du warst der Hammer! Azubispot …
+      '3HzXqF-wj0k', // Zurück auf der JOBNOX 2025 …
+      'xyCrQFBA1EA', // Tag 10 der Einführungswochen …
+      '6PHW5bEqPDA', // Tag 6 der Einführungswochen …
+    ],
+  },
+  seminarsHeader: {
+    eyebrow: 'Wissen & Praxis',
+    title: 'Seminare & Schulungen',
+    text: 'Lernen Sie von Expert:innen — kompakte Seminare zu allen Themen rund um Pflege, Hilfsmittel und butler-Finanzverwaltung.',
+  },
+  seminars: {
+    header: {
+      eyebrow: 'Seminare',
+      title: 'Aktuelle Schulungen & Termine',
+      text: 'Wählen Sie ein Seminar aus der Liste, um Details, Termine und Inhalte zu sehen.',
+    },
+    seminars: [
+      {
+        id: 'butler-finanztraining',
+        title: 'butler Finanztraining: Vermögen und Schulden Ihrer Betreuten',
+        status: 'fully-booked',
+        provider: 'butler – Customer Support',
+        location: 'prosozial GmbH',
+        supplierLocation: '56112 Lahnstein, Koblenzer Straße 34 A',
+        cost: '298,00 € tax excl.',
+        description:
+          'In diesem zweitägigen Kurs lernen Sie, butlers Werkzeuge zur Vermögensverwaltung in der Praxis effizient einzusetzen — von der Anlage neuer Konten bis zur Kommunikation mit Banken und Gläubigern.',
+        bullets: [
+          'Maintain accounts and the associated postings',
+          'Find and resolve any balance discrepancies that may have arisen',
+          'Fully map the finances of your patients',
+          'Conduct correspondence with banks and creditors',
+          'Assign the "laundry basket" of receipts to accounting in butler tidy',
+          'Set up and operate',
+        ],
+        dates: [
+          {
+            date: 'Donnerstag, 06. August 2026',
+            label: 'butler Finanztraining: Vermögen und Schulden Ihrer Betreuten',
+            sessions: [
+              { time: '10:00 – 12:30', title: 'butler Finanztraining: Vermögen und Schulden Ihrer Betreuten' },
+              { time: '12:30 – 13:30', title: 'Mittagspause' },
+              { time: '10:00 – 12:30', title: 'butler Finanztraining: Vermögen und Schulden Ihrer Patienten' },
+            ],
+          },
+          {
+            date: 'Freitag, 07. August 2026',
+            label: 'butler Finanztraining: Vermögen und Schulden Ihrer Betreuten',
+            sessions: [
+              { time: '09:00 – 12:30', title: 'butler Finanztraining: Vermögen und Schulden Ihrer Betreuten' },
+              { time: '12:30 – 13:30', title: 'Mittagspause' },
+              { time: '13:30 – 16:00', title: 'butler Finanztraining: Vermögen und Schulden Ihrer Betreuten' },
+            ],
+          },
+        ],
+        lecturers: [
+          { name: 'Gehrmann, Silke (butler)', role: 'Trainerin' },
+        ],
+        documents: [
+          { label: 'Anreiseübersicht.pdf', url: '/assets/seminars/anreiseuebersicht.pdf' },
+        ],
+      },
+      {
+        id: 'pflegekasse-update-2026',
+        title: 'Pflegekasse-Update 2026: Neue Regeln & Anträge',
+        status: 'few-seats',
+        provider: 'prosozial – Akademie',
+        location: 'prosozial GmbH, Seminarraum 2',
+        supplierLocation: '56112 Lahnstein, Koblenzer Straße 34 A',
+        cost: '149,00 € tax incl.',
+        description:
+          'Was hat sich 2026 bei Pflegekasse und Hilfsmittelverordnung geändert? Ein kompakter Vormittag mit den wichtigsten Änderungen, Praxisbeispielen und Zeit für Ihre Fragen.',
+        bullets: [
+          'Überblick über die Änderungen 2026',
+          'Auswirkungen auf laufende Anträge',
+          'Häufige Ablehnungsgründe und wie Sie darauf reagieren',
+          'Live: Ausfüllen eines Musterantrags',
+        ],
+        dates: [
+          {
+            date: 'Mittwoch, 16. September 2026',
+            sessions: [
+              { time: '09:00 – 12:00', title: 'Pflegekasse-Update 2026' },
+              { time: '12:00 – 13:00', title: 'Mittagspause' },
+              { time: '13:00 – 15:00', title: 'Praxis-Workshop: Anträge ausfüllen' },
+            ],
+          },
+        ],
+        lecturers: [
+          { name: 'Werner, Klaus', role: 'Pflegedienstleiter & Dozent' },
+        ],
+        documents: [],
+      },
+    ],
   },
 
   badgesHeader: {

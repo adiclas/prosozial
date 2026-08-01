@@ -45,6 +45,8 @@ export class ContentService {
   readonly showcase = computed(() => this._content().showcase);
   readonly videosHeader = computed(() => this._content().videosHeader);
   readonly videos = computed(() => this._content().videos);
+  readonly seminarsHeader = computed(() => this._content().seminarsHeader);
+  readonly seminars = computed(() => this._content().seminars);
   readonly badgesHeader = computed(() => this._content().badgesHeader);
   readonly badges = computed(() => this._content().badges);
   readonly guarantee = computed(() => this._content().guarantee);
@@ -142,6 +144,20 @@ export class ContentService {
       ...(r.guarantee ?? {}),
       items: Array.isArray(r.guarantee?.items) ? r.guarantee!.items! : base.guarantee.items,
     } as typeof base.guarantee;
+    merged.videos = {
+      ...base.videos,
+      ...(r.videos ?? {}),
+      // videoIds MUST be string[]. If the server has a stale string
+      // (e.g. from an older save that didn't go through the transform),
+      // fall back to defaults so the home page list still works.
+      videoIds: Array.isArray((r.videos as any)?.videoIds)
+        ? (r.videos as any).videoIds
+        : base.videos.videoIds,
+      playlistUrl:
+        typeof (r.videos as any)?.playlistUrl === 'string' && (r.videos as any).playlistUrl
+          ? (r.videos as any).playlistUrl
+          : base.videos.playlistUrl,
+    } as typeof base.videos;
     merged.footer = {
       ...base.footer,
       ...(r.footer ?? {}),

@@ -423,10 +423,12 @@
       @if (active() === 'videos') {
         <section class="card" formGroupName="videos">
           <h2>YouTube-Playlist</h2>
-          <p class="text-muted" style="margin: 0 0 var(--space-4); font-size: var(--fs-sm)">
-            Die <strong>Playlist-URL</strong> wird für den „Tout lire"-Link und als Fallback verwendet.
-            Die <strong>Video-IDs</strong> (eine pro Zeile) bestimmen die Liste in der
-            Detailansicht — Titel und Thumbnails werden automatisch per YouTube oEmbed geladen.
+          <p class="admin-hint">
+            <strong>Tipp:</strong> Die ausgelieferten IDs sind Platzhalter
+            (Rick Astley, PSY …). Ersetze sie durch die echten IDs der
+            <a [href]="videos().playlistUrl" target="_blank" rel="noopener">prosozial-TV-Playlist</a>
+            (eine pro Zeile, 11 Zeichen). Titel und Thumbnails werden automatisch
+            per YouTube oEmbed geladen — kein API-Key nötig.
           </p>
           <div class="grid-2">
             <label class="span-2">
@@ -650,6 +652,80 @@
             <label><span>CTA · Ziel</span><input type="text" formControlName="ctaHref" /></label>
             <label><span>Telefon · Label</span><input type="text" formControlName="phoneLabel" /></label>
             <label><span>Telefon · Ziel</span><input type="text" formControlName="phoneHref" /></label>
+          </div>
+        </section>
+      }
+
+      <!-- ============== SEMINARS ============== -->
+      @if (active() === 'seminarsHeader') {
+        <section class="card" formGroupName="seminars" [formGroupName]="'seminarsHeader'">
+          <h2>Seminare · Header</h2>
+          <p class="text-muted" style="margin: 0 0 var(--space-4); font-size: var(--fs-sm)">
+            Überschrift und Beschreibung der Seminare-Übersichtsseite
+            (<code>/seminars</code>).
+          </p>
+          <div formGroupName="header" class="grid-2">
+            <label class="span-2"><span>Eyebrow</span><input type="text" formControlName="eyebrow" /></label>
+            <label class="span-2"><span>Titel</span><input type="text" formControlName="title" /></label>
+            <label class="span-2"><span>Untertitel</span><textarea rows="2" formControlName="text"></textarea></label>
+          </div>
+        </section>
+      }
+
+      @if (active() === 'seminars') {
+        <section class="card">
+          <h2>Seminare</h2>
+          <p class="text-muted" style="margin: 0 0 var(--space-4); font-size: var(--fs-sm)">
+            Übersicht aller Seminare. Klicken Sie auf <em>Bearbeiten</em>, um ein Seminar
+            auf einer eigenen Seite zu ändern.
+          </p>
+
+          <table class="seminar-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Titel</th>
+                <th>Veranstalter</th>
+                <th>Vortragende</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (s of seminarsTable(); track s.id) {
+                <tr>
+                  <td><code class="seminar-table__id">{{ s.id }}</code></td>
+                  <td class="seminar-table__title">{{ s.title || '—' }}</td>
+                  <td>{{ s.provider || '—' }}</td>
+                  <td class="seminar-table__lecturers">
+                    @if (s.lecturerNames) {
+                      {{ s.lecturerNames }}
+                    } @else {
+                      <span class="text-muted">—</span>
+                    }
+                  </td>
+                  <td>
+                    <a [routerLink]="['/seminars', s.id, 'edit']" class="btn btn--ghost btn--sm">
+                      <app-icon name="settings" [size]="14" />
+                      Bearbeiten
+                    </a>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="5" class="seminar-table__empty">
+                    Noch keine Seminare angelegt.
+                    <a routerLink="/seminars/new/edit">Erstes Seminar erstellen →</a>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+
+          <div class="seminar-table__actions">
+            <a routerLink="/seminars/new/edit" class="btn btn--primary">
+              <app-icon name="check" [size]="16" />
+              + Neues Seminar
+            </a>
           </div>
         </section>
       }

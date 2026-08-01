@@ -1,0 +1,48 @@
+<div class="seminars-page">
+  <div class="container">
+    <header class="seminars-head">
+      <span class="eyebrow">{{ header().header.eyebrow }}</span>
+      <h1>{{ header().header.title }}</h1>
+      <p>{{ header().header.text }}</p>
+    </header>
+
+    @if (seminars().length === 0) {
+      <p class="empty">Aktuell sind keine Seminare geplant.</p>
+    } @else {
+      <ul class="seminar-grid" role="list">
+        @for (s of seminars(); track s.id) {
+          <li>
+            <a [routerLink]="['/seminars', s.id]" class="seminar-card">
+              <span class="status status--{{ s.status }}">{{ statusLabel(s.status) }}</span>
+              <h2 class="seminar-card__title">{{ s.title }}</h2>
+              <dl class="seminar-card__meta">
+                <div>
+                  <dt>Nächster Termin</dt>
+                  <dd>{{ nextDateLabel(s) }}</dd>
+                </div>
+                <div>
+                  <dt>Veranstalter</dt>
+                  <dd>{{ s.provider }}</dd>
+                </div>
+                <div>
+                  <dt>Ort</dt>
+                  <dd>{{ s.location }}</dd>
+                </div>
+                @if (s.cost) {
+                  <div>
+                    <dt>Kosten</dt>
+                    <dd>{{ s.cost }}</dd>
+                  </div>
+                }
+              </dl>
+              <span class="seminar-card__cta">
+                Details
+                <app-icon name="arrow-right" [size]="14" />
+              </span>
+            </a>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</div>

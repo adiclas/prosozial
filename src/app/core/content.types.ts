@@ -59,6 +59,63 @@ export interface VideosContent {
   videoIds: string[];
 }
 
+export type SeminarStatus = 'available' | 'few-seats' | 'fully-booked' | 'cancelled';
+
+export interface SeminarSession {
+  /** Free-form time range, e.g. "10:00 – 12:30". */
+  time: string;
+  /** Session title, e.g. "butler Finanztraining: Vermögen und Schulden Ihrer Betreuten". */
+  title: string;
+}
+
+export interface SeminarDate {
+  /** Human-readable date header, e.g. "Freitag, 07. August 2026". */
+  date: string;
+  /** Optional group label shown under the date header. */
+  label?: string;
+  /** Time slots for the day. */
+  sessions: SeminarSession[];
+}
+
+export interface SeminarLecturer {
+  name: string;
+  role: string;
+  avatar?: string;
+}
+
+export interface SeminarDocument {
+  label: string;
+  url: string;
+}
+
+export interface Seminar {
+  /** URL slug used for /seminars/:id. Auto-derived from title if empty. */
+  id: string;
+  title: string;
+  status: SeminarStatus;
+  provider: string;
+  /** Where the seminar takes place (room/building). */
+  location: string;
+  /** Full address of the supplier/organizer. */
+  supplierLocation: string;
+  /** Price text, e.g. "298,00 € tax excl." */
+  cost: string;
+  /** Optional hero image. */
+  image?: string;
+  /** Plain-text or lightly-formatted description / contents. */
+  description: string;
+  /** Optional bullet points shown in the contents column. */
+  bullets: string[];
+  dates: SeminarDate[];
+  lecturers: SeminarLecturer[];
+  documents: SeminarDocument[];
+}
+
+export interface SeminarsContent {
+  header: SectionHeader;
+  seminars: Seminar[];
+}
+
 export interface BadgeContent {
   title: string;
   description: string;
@@ -148,6 +205,8 @@ export interface SiteContent {
   showcase: ShowcaseContent;
   videosHeader: SectionHeader;
   videos: VideosContent;
+  seminarsHeader: SectionHeader;
+  seminars: SeminarsContent;
   badgesHeader: SectionHeader;
   badges: BadgeContent[];
   guarantee: GuaranteeContent;

@@ -1,8 +1,6 @@
 {
   "header": {
     "brand": "Prosozial",
-    "ctaLabel": "Kostenlose Beratung",
-    "ctaHref": "/login",
     "navLinks": [
       {
         "label": "Produkte",
@@ -28,7 +26,9 @@
         "label": "Kontakt",
         "href": "#kontakt"
       }
-    ]
+    ],
+    "ctaLabel": "Kostenlose Beratung",
+    "ctaHref": "/login"
   },
   "hero": {
     "eyebrow": "Hilfsmittel · Pflege · Beratung",
@@ -36,12 +36,6 @@
     "titleLine2": "Mit den richtigen Hilfsmitteln.",
     "titleLine2Accent": true,
     "lead": "Sichere, geprüfte und komfortable Produkte für Mobilität, Alltag und Pflege — persönlich beraten, schnell geliefert und auf Wunsch direkt mit Ihrer Krankenkasse abgerechnet.",
-    "cardTitle": "Mobilität",
-    "cardSubtitle": "Über 320 Produkte auf Lager",
-    "cardIcon": "wheelchair",
-    "cardTopText": "Kostenfrei beraten lassen",
-    "ratingScore": "4,9 / 5",
-    "ratingCount": "1.240 Bewertungen",
     "ctaPrimary": {
       "label": "Beratung starten",
       "href": "/login"
@@ -64,6 +58,12 @@
         "label": "DSGVO-konform & sicher"
       }
     ],
+    "cardTitle": "Mobilität",
+    "cardSubtitle": "Über 320 Produkte auf Lager",
+    "cardIcon": "wheelchair",
+    "cardTopText": "Kostenfrei beraten lassen",
+    "ratingScore": "4,9 / 5",
+    "ratingCount": "1.240 Bewertungen",
     "avatars": [
       {
         "initials": "S",
@@ -170,7 +170,130 @@
       "scclA6RDcsw",
       "zJL-JWnbGmo",
       "3HzXqF-wj0k",
-      "xyCrQFBA1EA"
+      "xyCrQFBA1EA",
+      "6PHW5bEqPDA"
+    ]
+  },
+  "seminarsHeader": {
+    "eyebrow": "Wissen & Praxis",
+    "title": "Seminare & Schulungen",
+    "text": "Lernen Sie von Expert:innen — kompakte Seminare zu allen Themen rund um Pflege, Hilfsmittel und butler-Finanzverwaltung."
+  },
+  "seminars": {
+    "header": {
+      "eyebrow": "Seminare",
+      "title": "Aktuelle Schulungen & Termine",
+      "text": "Wählen Sie ein Seminar aus der Liste, um Details, Termine und Inhalte zu sehen."
+    },
+    "seminars": [
+      {
+        "id": "butler-finanztraining",
+        "title": "butler Finanztraining: Vermögen und Schulden Ihrer Betreuten",
+        "status": "fully-booked",
+        "provider": "butler – Customer Support",
+        "location": "prosozial GmbH",
+        "supplierLocation": "56112 Lahnstein, Koblenzer Straße 34 A",
+        "cost": "298,00 € tax excl.",
+        "description": "In diesem zweitägigen Kurs lernen Sie, butlers Werkzeuge zur Vermögensverwaltung in der Praxis effizient einzusetzen — von der Anlage neuer Konten bis zur Kommunikation mit Banken und Gläubigern.",
+        "bullets": [
+          "Maintain accounts and the associated postings",
+          "Find and resolve any balance discrepancies that may have arisen",
+          "Fully map the finances of your patients",
+          "Conduct correspondence with banks and creditors",
+          "Assign the \"laundry basket\" of receipts to accounting in butler tidy",
+          "Set up and operate"
+        ],
+        "dates": [
+          {
+            "date": "Donnerstag, 06. August 2026",
+            "sessions": [
+              {
+                "time": "10:00 – 12:30",
+                "title": "butler Finanztraining: Vermögen und Schulden Ihrer Betreuten"
+              },
+              {
+                "time": "12:30 – 13:30",
+                "title": "Mittagspause"
+              },
+              {
+                "time": "10:00 – 12:30",
+                "title": "butler Finanztraining: Vermögen und Schulden Ihrer Patienten"
+              }
+            ]
+          },
+          {
+            "date": "Freitag, 07. August 2026",
+            "sessions": [
+              {
+                "time": "09:00 – 12:30",
+                "title": "butler Finanztraining: Vermögen und Schulden Ihrer Betreuten"
+              },
+              {
+                "time": "12:30 – 13:30",
+                "title": "Mittagspause"
+              },
+              {
+                "time": "13:30 – 16:00",
+                "title": "butler Finanztraining: Vermögen und Schulden Ihrer Betreuten"
+              }
+            ]
+          }
+        ],
+        "lecturers": [
+          {
+            "name": "Gehrmann, Silke (butler)",
+            "role": "Trainerin"
+          }
+        ],
+        "documents": [
+          {
+            "label": "Anreiseübersicht.pdf",
+            "url": "/assets/seminars/anreiseuebersicht.pdf"
+          }
+        ]
+      },
+      {
+        "id": "pflegekasse-update-2026",
+        "title": "Pflegekasse-Update 2026: Neue Regeln & Anträge",
+        "status": "few-seats",
+        "provider": "prosozial – Akademie",
+        "location": "prosozial GmbH, Seminarraum 2",
+        "supplierLocation": "56112 Lahnstein, Koblenzer Straße 34 A",
+        "cost": "149,00 € tax incl.",
+        "description": "Was hat sich 2026 bei Pflegekasse und Hilfsmittelverordnung geändert? Ein kompakter Vormittag mit den wichtigsten Änderungen, Praxisbeispielen und Zeit für Ihre Fragen.",
+        "bullets": [
+          "Überblick über die Änderungen 2026",
+          "Auswirkungen auf laufende Anträge",
+          "Häufige Ablehnungsgründe und wie Sie darauf reagieren",
+          "Live: Ausfüllen eines Musterantrags"
+        ],
+        "dates": [
+          {
+            "date": "Mittwoch, 16. September 2026",
+            "sessions": [
+              {
+                "time": "09:00 – 12:00",
+                "title": "Pflegekasse-Update 2026"
+              },
+              {
+                "time": "12:00 – 13:00",
+                "title": "Mittagspause"
+              },
+              {
+                "time": "13:00 – 15:00",
+                "title": "Praxis-Workshop: Anträge ausfüllen"
+              }
+            ]
+          }
+        ],
+        "lecturers": [
+          {
+            "name": "Werner, Klaus",
+            "role": "Pflegedienstleiter & Dozent"
+          }
+        ],
+        "documents": []
+      }
     ]
   },
   "badgesHeader": {
@@ -213,12 +336,12 @@
   "guarantee": {
     "title": "Zufriedenheits-Garantie",
     "text": "30 Tage Rückgaberecht auf alle lagernden Produkte. Falls etwas nicht passt, holen wir es kostenfrei bei Ihnen ab.",
-    "sealIcon": "badge-leaf",
     "items": [
       "Kostenfreier Rückversand",
       "Schnelle Erstattung",
       "Persönlicher Ansprechpartner"
-    ]
+    ],
+    "sealIcon": "badge-leaf"
   },
   "plans": [
     {
@@ -227,13 +350,13 @@
       "price": "0 €",
       "period": "kostenlos",
       "description": "Erstgespräch mit unseren Hilfsmittel-Experten — unverbindlich.",
-      "cta": "Termin vereinbaren",
-      "variant": "basic",
       "features": [
         "Telefonische Erstberatung",
         "Empfehlung passender Hilfsmittel",
         "Hilfe bei der Kostenkasse-Anfrage"
-      ]
+      ],
+      "cta": "Termin vereinbaren",
+      "variant": "basic"
     },
     {
       "name": "Komplett-Paket",
@@ -241,14 +364,14 @@
       "price": "49 €",
       "period": "/ Jahr",
       "description": "Rundum-Sorglos für zu Hause — Lieferung, Wartung und Beratung inklusive.",
-      "cta": "Jetzt starten",
-      "variant": "featured",
       "features": [
         "Persönliche Vor-Ort-Beratung",
         "Lieferung & Aufbau",
         "Wartung & Sicherheitscheck",
         "Kostenfreier Ersatz bei Defekt"
-      ]
+      ],
+      "cta": "Jetzt starten",
+      "variant": "featured"
     },
     {
       "name": "Pflege-Einrichtung",
@@ -256,43 +379,41 @@
       "price": "Auf Anfrage",
       "period": "individuell",
       "description": "Maßgeschneiderte Versorgung für Pflegeheime und ambulante Dienste.",
-      "cta": "Angebot anfordern",
-      "variant": "premium",
       "features": [
         "Rahmenverträge & Konditionen",
         "Eigener Ansprechpartner",
         "Schulung Ihres Teams",
         "Monatliche Auswertung"
-      ]
+      ],
+      "cta": "Angebot anfordern",
+      "variant": "premium"
     }
   ],
-  "team": {
-    "teamTitle": "Unser Beratungsteam",
-    "teamText": "Erfahrene Spezialisten, die sich Zeit für Sie nehmen — telefonisch oder vor Ort.",
-    "team": [
-      {
-        "name": "Anna Vogt",
-        "role": "Hilfsmittel-Beraterin",
-        "rating": 5,
-        "initials": "AV",
-        "avatarColor": "#9ed4ad"
-      },
-      {
-        "name": "Markus Lehner",
-        "role": "Pflege-Spezialist",
-        "rating": 5,
-        "initials": "ML",
-        "avatarColor": "#74c189"
-      },
-      {
-        "name": "Sophia Bach",
-        "role": "Ergotherapeutin",
-        "rating": 5,
-        "initials": "SB",
-        "avatarColor": "#4daf6a"
-      }
-    ]
-  },
+  "teamTitle": "Unser Beratungsteam",
+  "teamText": "Erfahrene Spezialisten, die sich Zeit für Sie nehmen — telefonisch oder vor Ort.",
+  "team": [
+    {
+      "name": "Anna Vogt",
+      "role": "Hilfsmittel-Beraterin",
+      "rating": 5,
+      "avatarColor": "#9ed4ad",
+      "initials": "AV"
+    },
+    {
+      "name": "Markus Lehner",
+      "role": "Pflege-Spezialist",
+      "rating": 5,
+      "avatarColor": "#74c189",
+      "initials": "ML"
+    },
+    {
+      "name": "Sophia Bach",
+      "role": "Ergotherapeutin",
+      "rating": 5,
+      "avatarColor": "#4daf6a",
+      "initials": "SB"
+    }
+  ],
   "ctaStrip": {
     "eyebrow": "Bereit loszulegen?",
     "title": "Wir beraten Sie kostenlos und unverbindlich.",
@@ -305,7 +426,6 @@
   "footer": {
     "brand": "Prosozial",
     "description": "Prosozial — Hilfsmittel und Beratung für ein selbstbestimmtes Leben. Seit 2008 Ihr verlässlicher Partner in Deutschland.",
-    "copyright": "© 2026 Prosozial GmbH · Alle Rechte vorbehalten",
     "contact": [
       {
         "icon": "phone",
@@ -393,6 +513,7 @@
         ]
       }
     ],
+    "copyright": "© 2026 Prosozial GmbH · Alle Rechte vorbehalten",
     "legal": [
       {
         "label": "Impressum",

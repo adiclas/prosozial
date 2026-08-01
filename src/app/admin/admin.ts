@@ -23,7 +23,9 @@ type SectionId =
   | 'plans'
   | 'team'
   | 'ctaStrip'
-  | 'footer';
+  | 'footer'
+  | 'seminarsHeader'
+  | 'seminars';
 
 const ICON_NAMES = Object.keys(ICONS) as IconName[];
 
@@ -67,6 +69,8 @@ export class Admin {
     { id: 'team', label: 'Team', group: 'Sonstiges' },
     { id: 'ctaStrip', label: 'CTA-Streifen', group: 'Footer' },
     { id: 'footer', label: 'Footer', group: 'Footer' },
+    { id: 'seminarsHeader', label: 'Header — Seminare', group: 'Seminare' },
+    { id: 'seminars', label: 'Seminare', group: 'Seminare' },
   ];
 
   readonly activeSection = computed(() => this.sections.find((s) => s.id === this.active())!);
@@ -79,6 +83,22 @@ export class Admin {
     }
     return Array.from(groups.entries()).map(([name, items]) => ({ name, items }));
   });
+
+  /** Shortcut signal for the seminars section (used by the table). */
+  readonly seminars = computed(() => this.current().seminars);
+
+  /** Used by the videos admin form (for the inline hint link). */
+  readonly videos = computed(() => this.current().videos);
+
+  /** Flattened view used by the admin seminars table. */
+  readonly seminarsTable = computed(() =>
+    (this.seminars()?.seminars ?? []).map((s: any) => ({
+      id: s.id,
+      title: s.title,
+      provider: s.provider,
+      lecturerNames: (s.lecturers ?? []).map((l: any) => l.name).filter(Boolean).join(', '),
+    })),
+  );
 
   // ---------- Form per section ----------
   readonly form: FormGroup = this.buildForm();
@@ -217,6 +237,13 @@ export class Admin {
         ctaHref: [this.current().ctaStrip.ctaHref],
         phoneLabel: [this.current().ctaStrip.phoneLabel],
         phoneHref: [this.current().ctaStrip.phoneHref],
+      }),
+      seminarsHeader: this.sectionHeaderGroup(this.current().seminars.header),
+      seminars: this.fb.group({
+        header: this.sectionHeaderGroup(this.current().seminars.header),
+        // Seminars are now edited individually at /seminars/:id/edit, so
+        // the admin "Seminare" section only carries the header. The list
+        // page reads from the content service directly.
       }),
       footer: this.fb.group({
         brand: [this.current().footer.brand],

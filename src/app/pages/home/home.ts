@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { RouterLink } from '@angular/router';
 import { Icon } from '../../shared/icon';
 import { ContentService } from '../../core/content.service';
@@ -15,6 +16,7 @@ import { YouTubeService, YouTubeVideo } from './youtube.service';
 export class Home {
   private readonly content = inject(ContentService);
   private readonly youtube = inject(YouTubeService);
+  private readonly sanitizer = inject(DomSanitizer);
 
   readonly mobileNavOpen = signal(false);
 
@@ -42,15 +44,37 @@ export class Home {
   // ----- YouTube playlist state -----
   readonly videos$ = signal<YouTubeVideo[]>([]);
   readonly activeVideoId = signal<string | null>(null);
+  readonly playerStarted = signal(false);
   readonly activeVideo = computed<YouTubeVideo | null>(() => {
     const id = this.activeVideoId();
     return this.videos$().find((v) => v.id === id) ?? this.videos$()[0] ?? null;
   });
+  /**
+   * Embed URL is only computed once the user has explicitly clicked play.
+   * Until then, the poster + play button is shown — this avoids the
+   * "black iframe" state that YouTube shows by default and also dodges
+   * browsers' autoplay policies.
+   */
   readonly activeEmbedUrl = computed(() => {
+    if (!this.playerStarted()) return null;
     const v = this.activeVideo();
-    return v ? `https://www.youtube.com/embed/${v.id}?rel=0` : null;
+    return v
+      ? `https://www.youtube.com/embed/${encodeURIComponent(v.id)}?autoplay=1&mute=1&rel=0&playsinline=1&modestbranding=1`
+      : null;
+  });
+  /**
+   * `<iframe [src]>` runs through Angular's resource-URL sanitizer, which
+   * blocks the raw string. Wrap it so the binding is allowed.
+   */
+  readonly safeActiveEmbed = computed<SafeResourceUrl | null>(() => {
+    const url = this.activeEmbedUrl();
+    return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
   });
   readonly playlistEmbedUrl = computed(() => this.youtubeEmbedUrl(this.videos().playlistUrl));
+  readonly safePlaylistEmbed = computed<SafeResourceUrl | null>(() => {
+    const url = this.playlistEmbedUrl();
+    return url ? this.sanitizer.bypassSecurityTrustResourceUrl(url) : null;
+  });
   readonly videoCount = computed(() => this.videos$().length);
 
   constructor() {
@@ -69,12 +93,38 @@ export class Home {
 
   selectVideo(id: string): void {
     this.activeVideoId.set(id);
+    this.playerStarted.set(true);
     // Scroll the selected item into view in the list
     queueMicrotask(() => {
       document
         .querySelector(`[data-video-id="${id}"]`)
         ?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
     });
+  }
+
+  startPlayer(): void {
+    this.playerStarted.set(true);
+  }
+
+  /**
+   * Replace broken YouTube thumbnails (404 because the video was deleted
+   * or the ID is wrong) with a neutral inline SVG placeholder. We swap the
+   * src once and flag the element so the browser doesn't try to re-fetch
+   * on every change-detection pass.
+   */
+  onThumbError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    if (img.dataset['fallback'] === '1') return;
+    img.dataset['fallback'] = '1';
+    img.src =
+      'data:image/svg+xml;utf8,' +
+      encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 180" width="320" height="180">' +
+          '<rect width="320" height="180" fill="#e2e8f0"/>' +
+          '<path d="M140 70v40l30-20z" fill="#94a3b8"/>' +
+          '<text x="160" y="150" text-anchor="middle" font-family="sans-serif" font-size="14" fill="#64748b">Video nicht verfügbar</text>' +
+          '</svg>',
+      );
   }
 
   stars(rating: number): number[] {

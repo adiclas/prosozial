@@ -1,0 +1,105 @@
+<div class="seminar-detail-page">
+  <div class="container">
+    @if (seminar(); as s) {
+      <a routerLink="/seminars" class="back-link" (click)="goBack($event)">
+        ← Back to overview
+      </a>
+
+      <h1 class="title">{{ s.title }}</h1>
+      <span class="status status--{{ s.status }}">{{ statusLabel(s.status) }}</span>
+
+      <div class="grid">
+        <!-- Left column: key/value info -->
+        <div class="col col--info">
+          <dl class="info">
+            <div><dt>Status</dt><dd>{{ statusLabel(s.status) }}</dd></div>
+            <div><dt>Provider</dt><dd>{{ s.provider }}</dd></div>
+            <div><dt>Takes place at</dt><dd>{{ s.location }}</dd></div>
+            <div><dt>Supplier Location</dt><dd>{{ s.supplierLocation }}</dd></div>
+            <div><dt>Cost</dt><dd>{{ s.cost }}</dd></div>
+            @if (s.documents?.length) {
+              <div>
+                <dt>Documents</dt>
+                <dd>
+                  <ul class="docs">
+                    @for (d of s.documents; track d.url) {
+                      <li>
+                        <a [href]="d.url" target="_blank" rel="noopener">
+                          <app-icon name="play" [size]="14" />
+                          {{ d.label }}
+                        </a>
+                      </li>
+                    }
+                  </ul>
+                </dd>
+              </div>
+            }
+          </dl>
+        </div>
+
+        <!-- Middle column: dates -->
+        <div class="col col--dates">
+          <h2>Dates</h2>
+          @for (d of s.dates; track d.date) {
+            <div class="date-block">
+              <h3 class="date-block__date">
+                {{ d.date }}
+                @if (d.label) { <small>{{ d.label }}</small> }
+              </h3>
+              <ul class="date-block__sessions">
+                @for (sess of d.sessions; track sess.time) {
+                  <li>
+                    <span class="time">{{ sess.time }}</span>
+                    <span class="title">{{ sess.title }}</span>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+
+        <!-- Right column: lecturers + contents -->
+        <div class="col col--side">
+          @if (s.lecturers?.length) {
+            <section>
+              <h2>Lecturers</h2>
+              <ul class="lecturers">
+                @for (l of s.lecturers; track l.name) {
+                  <li>
+                    @if (l.avatar) {
+                      <img [src]="l.avatar" [alt]="l.name" />
+                    } @else {
+                      <span class="avatar" aria-hidden="true">{{ l.name.charAt(0) }}</span>
+                    }
+                    <div>
+                      <strong>{{ l.name }}</strong>
+                      <small>{{ l.role }}</small>
+                    </div>
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+
+          <section>
+            <h2>Contents</h2>
+            <p class="contents-intro">{{ s.description }}</p>
+            @if (s.bullets?.length) {
+              <ul class="bullets">
+                @for (b of s.bullets; track b) {
+                  <li>{{ b }}</li>
+                }
+              </ul>
+            }
+          </section>
+        </div>
+      </div>
+    } @else {
+      <div class="not-found">
+        <h1>Seminar nicht gefunden</h1>
+        <p>Das angeforderte Seminar existiert nicht oder wurde entfernt.</p>
+        <a routerLink="/seminars" class="btn btn--primary">Zurück zur Übersicht</a>
+      </div>
+    }
+  </div>
+</div>
