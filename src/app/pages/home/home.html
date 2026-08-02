@@ -394,82 +394,52 @@
   </div>
 </section>
 
-<!-- ============== GUARANTEE + PRICING + TEAM ============== -->
-<section class="section">
+<!-- ============== LECTURERS (bento mosaic) ============== -->
+<section class="section lecturers-scatter" id="team">
   <div class="container">
-    <div class="grid-3">
-      <!-- Guarantee -->
-      <article class="guarantee" id="ablauf">
-        <div class="guarantee__seal" aria-hidden="true">
-          <app-icon [name]="guarantee().sealIcon" [size]="56" />
-        </div>
-        <h3>{{ guarantee().title }}</h3>
-        <p>{{ guarantee().text }}</p>
-        <ul class="guarantee__list">
-          @for (i of guarantee().items; track i) {
-            <li><app-icon name="check" [size]="18" /> {{ i }}</li>
-          }
-        </ul>
-      </article>
+    <!-- Decorative vertical dotted guide lines -->
+    <div class="scatter__guides" aria-hidden="true">
+      <span class="scatter__guide" style="left: 18%"></span>
+      <span class="scatter__guide" style="left: 36%"></span>
+      <span class="scatter__guide" style="left: 50%"></span>
+      <span class="scatter__guide" style="left: 64%"></span>
+      <span class="scatter__guide" style="left: 82%"></span>
+    </div>
 
-      <!-- Pricing -->
-      <article class="pricing" id="kontakt">
-        <h3>Beratungs- &amp; Service-Pläne</h3>
-        <div class="pricing__cards">
-          @for (p of plans(); track p.name) {
-            <div class="plan plan--{{ p.variant }}">
-              @if (p.badge) {
-                <span class="plan__badge">{{ p.badge }}</span>
+    <div class="scatter">
+      <!-- TOP ROW: 10 photos -->
+      <div class="scatter__photos-top">
+        @for (l of topRowLecturers(); track l.id; let i = $index) {
+          <figure class="scatter__photo scatter__photo--t{{ i + 1 }}">
+            <div class="scatter__photo-frame" [style.background]="l.avatarColor || 'var(--color-primary)'">
+              @if (l.avatar) {
+                <img [src]="l.avatar" [alt]="l.name" loading="lazy" />
+              } @else {
+                <span class="scatter__photo-initials">{{ lecturerInitials(l.name) }}</span>
               }
-              <h4>{{ p.name }}</h4>
-              <div class="plan__price">
-                <strong>{{ p.price }}</strong>
-                <span>{{ p.period }}</span>
-              </div>
-              <p>{{ p.description }}</p>
-              <ul>
-                @for (feat of p.features; track feat) {
-                  <li>
-                    <app-icon name="check" [size]="16" />
-                    <span>{{ feat }}</span>
-                  </li>
-                }
-              </ul>
-              <a href="#" class="btn btn--block" [class.btn--primary]="p.variant === 'featured'" [class.btn--ghost]="p.variant !== 'featured'">
-                {{ p.cta }}
-              </a>
             </div>
-          }
-        </div>
-      </article>
+          </figure>
+        }
+      </div>
 
-      <!-- Lecturers (from global pool) -->
-      <article class="team">
-        <h3>{{ teamTitle() }}</h3>
-        <p>{{ teamText() }}</p>
-
-        <ul class="team__list">
-          @for (l of topLecturers(); track l.id) {
-            <li class="team__member">
-              <span class="team__avatar" [style.background]="l.avatarColor || 'var(--color-primary)'" aria-hidden="true">
-                @if (l.avatar) {
-                  <img [src]="l.avatar" alt="" />
-                } @else {
-                  {{ lecturerInitials(l.name) }}
-                }
-              </span>
-              <div class="team__meta">
-                <strong>{{ l.name }}</strong>
-                <small>{{ l.role }}</small>
-              </div>
-            </li>
-          }
-        </ul>
-        <a routerLink="/seminars/lecturers" class="team__more" target="_blank">
-          Alle Dozent:innen ansehen
-          <app-icon name="arrow-right" [size]="12" />
+      <!-- Centered heading + CTA -->
+      <div class="scatter__center">
+        <span class="scatter__pill">Testimonials</span>
+        <h2 class="scatter__title">
+          <span class="scatter__title-dark">Trusted by leaders</span>
+          <span class="scatter__title-soft">from various industries</span>
+        </h2>
+        <p class="scatter__lead">
+          Learn why professionals trust our solutions to
+          complete their customer journeys.
+        </p>
+        <a routerLink="/seminars/lecturers" class="scatter__cta">
+          Read Success Stories
+          <app-icon name="arrow-right" [size]="14" />
         </a>
-      </article>
+      </div>
+
+      <!-- BOTTOM ROW removed -->
     </div>
   </div>
 </section>

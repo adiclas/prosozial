@@ -1,129 +1,221 @@
 <div class="lecturer-edit-page">
-  <div class="layout">
-    <main class="content">
-      <header class="page-head">
-        <a class="back" routerLink="/seminars/lecturers" (click)="$event.preventDefault(); cancel()">
+
+  <!-- ====== Sticky header ====== -->
+  <header class="page-header">
+    <div class="page-header__inner">
+      <div class="page-header__crumb">
+        <a routerLink="/seminars/lecturers" class="crumb-link" (click)="$event.preventDefault(); cancel()">
           <app-icon name="arrow-left" [size]="14" /> Zur Dozenten-Übersicht
         </a>
-        <div class="page-head__crumb">
-          <span class="eyebrow">{{ isNew() ? 'NEU ANLEGEN' : 'BEARBEITEN' }}</span>
-          <h1 class="page-title">{{ pageTitle() }}</h1>
-          @if (lecturer(); as l) {
-            <p class="page-head__hint">
-              ID: <code>{{ l.id }}</code> · Wird in {{ countUses(l.id) }} Seminar{{ countUses(l.id) === 1 ? '' : 'en' }} verwendet
-            </p>
+        <span class="crumb-sep">/</span>
+        <span class="crumb-current">{{ isNew() ? 'Neu' : (lecturer()?.name || '…') }}</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="layout">
+
+    <!-- ====== Sidebar ====== -->
+    <aside class="sidebar">
+      <div class="sidebar__brand">
+        <div class="sidebar__brand-icon" [style.background]="preview().avatarColor || 'var(--color-primary)'">
+          @if (preview().avatar) {
+            <img [src]="preview().avatar" alt="" />
           } @else {
-            <p class="page-head__hint">
-              <app-icon name="sparkle" [size]="14" />
-              Noch nicht gespeichert. Name & Rolle ausfüllen, dann auf <strong>Speichern</strong> klicken.
-            </p>
-          }
-          @if (uploadError(); as e) {
-            <p class="admin-status admin-status--error" role="alert" style="margin-top: var(--space-3)">
-              <app-icon name="triangle-alert" [size]="14" /> {{ e }}
-            </p>
+            <span>{{ preview().name.charAt(0) || '?' }}</span>
           }
         </div>
+        <div class="sidebar__brand-meta">
+          <strong>{{ preview().name || 'Neuer Dozent' }}</strong>
+          <small>{{ preview().role || 'Rolle noch nicht gesetzt' }}</small>
+        </div>
+      </div>
+
+      <nav class="sidebar__nav">
+        <div class="sidebar__nav-label">Abschnitte</div>
+        @for (s of sections; track s.id) {
+          <button type="button" class="sidebar__item" [class.is-active]="currentSection() === s.id" (click)="scrollTo(s.id, $event)">
+            <span class="sidebar__item-num">{{ s.number }}</span>
+            <span class="sidebar__item-label">{{ s.label }}</span>
+            <span class="sidebar__item-dot" [class.is-done]="completion()[s.id]" aria-hidden="true">
+              @if (completion()[s.id]) { <app-icon name="check" [size]="10" /> }
+            </span>
+          </button>
+        }
+      </nav>
+
+      <div class="sidebar__usage">
+        @if (lecturer(); as l) {
+          <div class="usage-row">
+            <app-icon name="info-circle" [size]="12" />
+            <span>Wird in <strong>{{ countUses(l.id) }}</strong> Seminar{{ countUses(l.id) === 1 ? '' : 'en' }} verwendet</span>
+          </div>
+        }
+        <div class="usage-row">
+          <app-icon name="info-circle" [size]="12" />
+          <span><kbd>⌘</kbd> S zum Speichern · <kbd>Esc</kbd> zum Abbrechen</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ====== Main ====== -->
+    <main class="content">
+      <header class="page-head">
+        <span class="eyebrow">{{ isNew() ? 'NEU ANLEGEN' : 'BEARBEITEN' }}</span>
+        <h1 class="page-title">{{ preview().name || 'Neuer Dozent' }}</h1>
+        <p class="page-subtitle">{{ preview().role || 'Rolle setzen, um auf der öffentlichen Seite anzuzeigen' }}</p>
+        @if (uploadError(); as e) {
+          <p class="alert alert--error" role="alert">
+            <app-icon name="triangle-alert" [size]="14" /> {{ e }}
+          </p>
+        }
       </header>
 
-      <form [formGroup]="form" (ngSubmit)="save()" novalidate>
-        <div class="grid-2">
-          <section class="card">
-            <h2>Profil</h2>
-            <div class="card__body grid-2">
-              <label class="span-2">
-                <span class="lbl">Name <em>*</em></span>
-                <input type="text" formControlName="name" placeholder="Vor- und Nachname" />
-                @if (form.get('name')?.touched && form.get('name')?.invalid) {
-                  <small class="field-error">Name ist erforderlich.</small>
-                }
-              </label>
-              <label>
-                <span class="lbl">Rolle / Position <em>*</em></span>
-                <input type="text" formControlName="role" placeholder="z.B. Pflegedienstleiter & Dozent" />
-              </label>
-              <label>
-                <span class="lbl">ID (URL-Slug)</span>
-                <input type="text" formControlName="id" placeholder="wird automatisch aus dem Namen erzeugt" />
-                <small class="field-hint">Leer lassen — wird beim Speichern generiert.</small>
-              </label>
-              <label class="span-2">
-                <span class="lbl">Kurzbiografie (optional)</span>
-                <textarea rows="3" formControlName="bio" placeholder="Erfahrung, Schwerpunkte, was die Person ausmacht …"></textarea>
-              </label>
-            </div>
-          </section>
+      <form [formGroup]="form" (ngSubmit)="save()" novalidate class="lecture-form">
 
-          <section class="card">
-            <h2>Foto</h2>
-            <div class="card__body">
-              <div class="avatar-upload" [class.has-image]="!!form.get('avatar')?.value">
-                @if (form.get('avatar')?.value) {
-                  <img [src]="form.get('avatar')?.value" alt="Avatar-Vorschau" class="avatar-preview avatar-preview--lg" />
-                  <div class="avatar-upload__actions">
-                    <label class="btn btn--ghost btn--sm">
-                      <span>Bild ändern</span>
-                      <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onAvatarChange($event)" hidden />
-                    </label>
-                    <button type="button" class="btn btn--ghost btn--sm" (click)="clearAvatar()">
-                      <span>Entfernen</span>
-                    </button>
-                  </div>
-                } @else {
-                  <label class="avatar-drop">
-                    <app-icon name="play" [size]="22" />
-                    <div>
-                      <strong>Bild hochladen</strong>
-                      <small>PNG, JPG oder WebP · max. 10 MB</small>
-                    </div>
+        <!-- 1. Profil -->
+        <section class="card" id="sec-profile">
+          <header class="card__head">
+            <div><span class="card__kicker">01</span><h2 class="card__title">Profil</h2></div>
+          </header>
+          <div class="card__body grid-2">
+            <label>
+              <span class="lbl">Vollständiger Name <em>*</em></span>
+              <input type="text" formControlName="name" placeholder="Vor- und Nachname" autocomplete="name" />
+              @if (form.get('name')?.touched && form.get('name')?.invalid) {
+                <small class="field-error">Name ist erforderlich.</small>
+              }
+            </label>
+            <label>
+              <span class="lbl">Rolle / Position <em>*</em></span>
+              <input type="text" formControlName="role" placeholder="z.B. Pflegedienstleiter &amp; Dozent" />
+            </label>
+            <label>
+              <span class="lbl">ID <small>(URL-Slug)</small></span>
+              <input type="text" formControlName="id" placeholder="wird automatisch erzeugt" />
+              <small class="field-hint">Leer lassen — wird beim Speichern generiert.</small>
+            </label>
+            <label>
+              <span class="lbl">Reihenfolge</span>
+              <input type="number" formControlName="order" min="0" max="999" />
+              <small class="field-hint">Kleinere Zahl = weiter oben.</small>
+            </label>
+            <label class="span-2">
+              <span class="lbl">Kurzbiografie <small>(optional)</small></span>
+              <textarea rows="3" formControlName="bio" placeholder="Erfahrung, Schwerpunkte, was die Person ausmacht …"></textarea>
+            </label>
+          </div>
+        </section>
+
+        <!-- 2. Foto + Live-Vorschau -->
+        <section class="card" id="sec-photo">
+          <header class="card__head">
+            <div><span class="card__kicker">02</span><h2 class="card__title">Foto</h2></div>
+          </header>
+          <div class="card__body photo-grid">
+            <div class="upload-zone">
+              @if (form.get('avatar')?.value) {
+                <img [src]="form.get('avatar')?.value" alt="Avatar" class="upload-zone__preview" />
+                <div class="upload-zone__actions">
+                  <label class="btn btn--ghost btn--sm">
+                    <app-icon name="play" [size]="14" /> Ändern
                     <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onAvatarChange($event)" hidden />
                   </label>
-                }
-              </div>
+                  <button type="button" class="btn btn--ghost btn--sm" (click)="clearAvatar()">
+                    <app-icon name="trash" [size]="14" /> Entfernen
+                  </button>
+                </div>
+              } @else {
+                <label class="upload-zone__drop">
+                  <div class="upload-zone__icon"><app-icon name="play" [size]="28" /></div>
+                  <div>
+                    <strong>Bild hochladen</strong>
+                    <small>PNG, JPG oder WebP · max. 10 MB</small>
+                  </div>
+                  <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onAvatarChange($event)" hidden />
+                </label>
+              }
               <label class="color-picker">
-                <span class="lbl">Fallback-Farbe (für Initialen)</span>
+                <span class="lbl">Fallback-Farbe <small>(für Initialen)</small></span>
                 <div class="color-picker__row">
                   <input type="color" formControlName="avatarColor" />
                   <code>{{ form.get('avatarColor')?.value }}</code>
                 </div>
               </label>
             </div>
-          </section>
 
-          <section class="card">
-            <h2>Kontakt</h2>
-            <div class="card__body grid-2">
-              <label>
-                <span class="lbl">E-Mail</span>
-                <input type="email" formControlName="email" placeholder="name@prosozial.de" />
-              </label>
-              <label>
-                <span class="lbl">Telefon</span>
-                <input type="text" formControlName="phone" placeholder="+49 …" />
-              </label>
+            <div class="live-preview">
+              <div class="live-preview__label">Live-Vorschau</div>
+              <div class="live-preview__card">
+                <div class="live-preview__avatar" [style.background]="preview().avatarColor || 'var(--color-primary)'">
+                  @if (preview().avatar) {
+                    <img [src]="preview().avatar" [alt]="preview().name" />
+                  } @else {
+                    <span>{{ preview().name.charAt(0) || '?' }}</span>
+                  }
+                </div>
+                <strong class="live-preview__name">{{ preview().name || 'Vollständiger Name' }}</strong>
+                <small class="live-preview__role">{{ preview().role || 'Rolle / Position' }}</small>
+                @if (expertiseList().length) {
+                  <ul class="live-preview__tags">
+                    @for (t of expertiseList().slice(0, 3); track t) { <li>{{ t }}</li> }
+                    @if (expertiseList().length > 3) { <li class="more">+{{ expertiseList().length - 3 }}</li> }
+                  </ul>
+                }
+              </div>
             </div>
-          </section>
+          </div>
+        </section>
 
-          <section class="card">
-            <h2>Schwerpunkte</h2>
-            <div class="card__body">
-              <label>
-                <span class="lbl">Tags (kommagetrennt)</span>
-                <input type="text" formControlName="expertise" placeholder="z.B. Mobilität, Alltagshilfen, Beratung" />
-                <small class="field-hint">Werden auf der öffentlichen Karte als kleine Chips angezeigt.</small>
-              </label>
-              <label style="max-width:200px; margin-top: var(--space-4)">
-                <span class="lbl">Sortierung</span>
-                <input type="number" formControlName="order" />
-                <small class="field-hint">Kleinere Zahl = weiter oben.</small>
-              </label>
+        <!-- 3. Kontakt -->
+        <section class="card" id="sec-contact">
+          <header class="card__head">
+            <div><span class="card__kicker">03</span><h2 class="card__title">Kontakt</h2></div>
+          </header>
+          <div class="card__body grid-2">
+            <label>
+              <span class="lbl">E-Mail</span>
+              <input type="email" formControlName="email" placeholder="name@prosozial.de" autocomplete="email" />
+              @if (form.get('email')?.touched && form.get('email')?.invalid) {
+                <small class="field-error">Gültige E-Mail-Adresse eingeben.</small>
+              }
+            </label>
+            <label>
+              <span class="lbl">Telefon</span>
+              <input type="tel" formControlName="phone" placeholder="+49 …" autocomplete="tel" />
+            </label>
+          </div>
+        </section>
+
+        <!-- 4. Schwerpunkte (Chip-Input) -->
+        <section class="card" id="sec-expertise">
+          <header class="card__head">
+            <div><span class="card__kicker">04</span><h2 class="card__title">Schwerpunkte</h2></div>
+          </header>
+          <div class="card__body">
+            <div class="chip-input">
+              <ul class="chip-input__list" aria-label="Ausgewählte Tags">
+                @for (tag of expertiseList(); track tag) {
+                  <li>
+                    <span>{{ tag }}</span>
+                    <button type="button" (click)="removeExpertise(tag)" [attr.aria-label]="'Tag entfernen: ' + tag">
+                      <app-icon name="arrow-left" [size]="12" />
+                    </button>
+                  </li>
+                }
+                <li class="chip-input__field">
+                  <input type="text" [value]="expertiseDraft()" (input)="onExpertineInput($event)" (keydown)="onExpertiseKeydown($event)" placeholder="Tag eingeben und Enter drücken …" aria-label="Neuen Tag hinzufügen" />
+                </li>
+              </ul>
+              <small class="field-hint">Enter (oder Komma) fügt hinzu · Entferntaste löscht den letzten</small>
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
       </form>
     </main>
   </div>
 
+  <!-- ====== Fixed save bar ====== -->
   <div class="savebar" [class.is-dirty]="dirty()" [class.is-saving]="saving()">
     <div class="savebar__inner">
       <div class="savebar__status">
@@ -131,6 +223,8 @@
           <span class="dot dot--saving"></span> Wird gespeichert …
         } @else if (dirty()) {
           <span class="dot dot--dirty"></span> Ungespeicherte Änderungen
+        } @else if (lastSavedAt(); as t) {
+          <app-icon name="check" [size]="14" /> Gespeichert {{ formatSavedAt(t) }}
         } @else {
           <app-icon name="check" [size]="14" /> Bereit
         }
@@ -143,8 +237,7 @@
         }
         <button type="button" class="btn btn--ghost" (click)="cancel()">Abbrechen</button>
         <button type="button" class="btn btn--primary" (click)="save()" [disabled]="form.invalid || saving()">
-          <app-icon name="check" [size]="16" />
-          {{ saving() ? 'Speichern …' : 'Speichern' }}
+          <app-icon name="check" [size]="16" /> {{ saving() ? 'Speichern …' : 'Speichern' }}
         </button>
       </div>
     </div>

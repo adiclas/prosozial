@@ -31,6 +31,8 @@ interface SectionNavItem {
   id: SectionId;
   label: string;
   group: string;
+  icon: IconName;
+  count?: number;
   route?: never;
 }
 
@@ -38,10 +40,11 @@ interface LinkNavItem {
   id?: never;
   label: string;
   group: string;
+  icon: IconName;
   route: string;
 }
 
-type NavItem = { id?: SectionId; label: string; route?: string };
+type NavItem = { id?: SectionId; label: string; route?: string; icon: IconName };
 
 const ICON_NAMES = Object.keys(ICONS) as IconName[];
 
@@ -71,36 +74,48 @@ export class Admin {
   /**
    * Admin sidebar items. A section item activates an inline form editor;
    * a link item navigates to a dedicated page (e.g. the lecturer manager).
+   * The `icon` is shown in the sidebar and in the section header.
    */
   readonly sections: (SectionNavItem | LinkNavItem)[] = [
-    { id: 'header', label: 'Header / Navigation', group: 'Chrome' },
-    { id: 'hero', label: 'Hero', group: 'Hero' },
-    { id: 'featuresHeader', label: 'Header — Kategorien', group: 'Features' },
-    { id: 'features', label: 'Feature-Karten', group: 'Features' },
-    { id: 'servicesHeader', label: 'Header — Sortiment', group: 'Sortiment' },
-    { id: 'services', label: 'Service-Karten', group: 'Sortiment' },
-    { id: 'showcase', label: 'Vorher / Nachher', group: 'Showcase' },
-    { id: 'videosHeader', label: 'Header — Videos', group: 'Videos' },
-    { id: 'videos', label: 'YouTube-Playlist', group: 'Videos' },
-    { id: 'badgesHeader', label: 'Header — Zertifikate', group: 'Zertifikate' },
-    { id: 'badges', label: 'Zertifikate', group: 'Zertifikate' },
-    { id: 'guarantee', label: 'Garantie', group: 'Sonstiges' },
-    { id: 'plans', label: 'Preispläne', group: 'Sonstiges' },
-    { id: 'team', label: 'Team', group: 'Sonstiges' },
-    { id: 'ctaStrip', label: 'CTA-Streifen', group: 'Footer' },
-    { id: 'footer', label: 'Footer', group: 'Footer' },
-    { id: 'seminarsHeader', label: 'Header — Seminare', group: 'Seminare' },
-    { id: 'seminars', label: 'Seminare', group: 'Seminare' },
-    { route: '/seminars/lecturers', label: 'Dozenten', group: 'Seminare' },
+    { id: 'header',           label: 'Header / Navigation',  group: 'Chrome',      icon: 'menu' },
+    { id: 'hero',             label: 'Hero',                 group: 'Hero',        icon: 'sparkle' },
+    { id: 'featuresHeader',   label: 'Header — Kategorien',  group: 'Features',    icon: 'menu' },
+    { id: 'features',         label: 'Feature-Karten',       group: 'Features',    icon: 'star' },
+    { id: 'servicesHeader',   label: 'Header — Sortiment',   group: 'Sortiment',   icon: 'menu' },
+    { id: 'services',         label: 'Service-Karten',       group: 'Sortiment',   icon: 'gauge' },
+    { id: 'showcase',         label: 'Vorher / Nachher',     group: 'Showcase',    icon: 'rosette-check' },
+    { id: 'videosHeader',     label: 'Header — Videos',      group: 'Videos',      icon: 'menu' },
+    { id: 'videos',           label: 'YouTube-Playlist',     group: 'Videos',      icon: 'play' },
+    { id: 'badgesHeader',     label: 'Header — Zertifikate', group: 'Zertifikate', icon: 'menu' },
+    { id: 'badges',           label: 'Zertifikate',          group: 'Zertifikate', icon: 'badge-leaf' },
+    { id: 'guarantee',        label: 'Garantie',             group: 'Vertrauen',   icon: 'shield-check' },
+    { id: 'plans',            label: 'Preispläne',           group: 'Vertrauen',   icon: 'award' },
+    { id: 'team',             label: 'Team',                 group: 'Vertrauen',   icon: 'user' },
+    { id: 'ctaStrip',         label: 'CTA-Streifen',         group: 'Footer',      icon: 'send' },
+    { id: 'footer',           label: 'Footer',               group: 'Footer',      icon: 'globe' },
+    { id: 'seminarsHeader',   label: 'Header — Seminare',    group: 'Seminare',    icon: 'menu' },
+    { id: 'seminars',         label: 'Seminare',             group: 'Seminare',    icon: 'book' },
+    { route: '/seminars/lecturers', label: 'Dozenten',       group: 'Seminare',    icon: 'trophy' },
   ];
 
   readonly activeSection = computed(() => this.sections.find((s) => (s as SectionNavItem).id === this.active()) as SectionNavItem);
+
+  /** Icon for the active section, used in the topbar and card header. */
+  readonly activeIcon = computed(() => this.activeSection()?.icon ?? 'settings');
+
+  /** Group label for the active section — used as the eyebrow in the topbar. */
+  readonly activeGroup = computed(() => this.activeSection()?.group ?? '');
 
   readonly groupedSections = computed(() => {
     const groups = new Map<string, NavItem[]>();
     for (const s of this.sections) {
       if (!groups.has(s.group)) groups.set(s.group, []);
-      groups.get(s.group)!.push({ id: (s as SectionNavItem).id, label: s.label, route: (s as LinkNavItem).route });
+      groups.get(s.group)!.push({
+        id: (s as SectionNavItem).id,
+        label: s.label,
+        route: (s as LinkNavItem).route,
+        icon: s.icon,
+      });
     }
     return Array.from(groups.entries()).map(([name, items]) => ({ name, items }));
   });

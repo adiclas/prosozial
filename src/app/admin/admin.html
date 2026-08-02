@@ -1,7 +1,10 @@
 <div class="admin-shell">
   <aside class="admin-sidebar">
     <div class="admin-sidebar__brand">
-      <span class="admin-sidebar__title">Prosozial CMS</span>
+      <div class="admin-sidebar__brand-mark">
+        <span class="admin-sidebar__brand-dot"></span>
+        <span class="admin-sidebar__title">Prosozial CMS</span>
+      </div>
       @if (user(); as u) {
         <span class="admin-sidebar__user">{{ u.email }} · {{ u.role }}</span>
       }
@@ -18,8 +21,9 @@
                 [routerLink]="item.route"
                 [class.is-active]="item.route === '/seminars/lecturers'"
               >
-                <app-icon name="user" [size]="14" />
-                {{ item.label }}
+                <span class="admin-nav__icon"><app-icon [name]="item.icon" [size]="15" /></span>
+                <span class="admin-nav__label">{{ item.label }}</span>
+                <app-icon name="arrow-right" [size]="12" class="admin-nav__chevron" />
               </a>
             } @else {
               <button
@@ -28,7 +32,8 @@
                 [class.is-active]="active() === item.id"
                 (click)="setActive(item.id!)"
               >
-                {{ item.label }}
+                <span class="admin-nav__icon"><app-icon [name]="item.icon" [size]="15" /></span>
+                <span class="admin-nav__label">{{ item.label }}</span>
               </button>
             }
           }
@@ -49,8 +54,17 @@
   <main class="admin-main">
     <form [formGroup]="form" (ngSubmit)="save()" novalidate>
       <header class="admin-main__topbar">
-        <div>
-          <span class="eyebrow">Bearbeiten</span>
+        <div class="admin-main__title">
+          <nav class="admin-breadcrumb" aria-label="Position">
+            <span class="admin-breadcrumb__crumb">CMS</span>
+            <app-icon name="arrow-right" [size]="10" class="admin-breadcrumb__sep" />
+            <span class="admin-breadcrumb__crumb admin-breadcrumb__crumb--muted">{{ activeGroup() }}</span>
+            <app-icon name="arrow-right" [size]="10" class="admin-breadcrumb__sep" />
+            <span class="admin-breadcrumb__crumb">
+              <app-icon [name]="activeIcon()" [size]="11" class="admin-breadcrumb__icon" />
+              {{ activeSection().label }}
+            </span>
+          </nav>
           <h1>{{ activeSection().label }}</h1>
         </div>
         <div class="admin-main__actions">
@@ -62,24 +76,26 @@
             }
             @case ('saved') {
               <span class="admin-status admin-status--saved">
-                <app-icon name="check" [size]="14" /> Auf Server gespeichert
+                <app-icon name="check" [size]="13" /> Auf Server gespeichert
               </span>
             }
             @case ('error') {
               <span class="admin-status admin-status--error" [title]="error() ?? ''">
-                <app-icon name="triangle-alert" [size]="14" /> {{ error() }}
+                <app-icon name="triangle-alert" [size]="13" /> {{ error() }}
               </span>
             }
             @case ('loading') {
-              <span class="admin-status">
+              <span class="admin-status admin-status--loading">
                 <span class="admin-status__dot"></span> Lade vom Server …
               </span>
             }
           }
-          <button type="button" class="btn btn--ghost" (click)="refresh()" title="Vom Server neu laden">
-            <app-icon name="refresh" [size]="14" />
+          <button type="button" class="btn btn--ghost btn--icon" (click)="refresh()" title="Vom Server neu laden" aria-label="Vom Server neu laden">
+            <app-icon name="refresh" [size]="15" />
           </button>
-          <button type="button" class="btn btn--ghost" (click)="reset()">Zurücksetzen</button>
+          <button type="button" class="btn btn--ghost" (click)="reset()" title="Auf Werkseinstellungen zurücksetzen">
+            <app-icon name="trash" [size]="14" /> Zurücksetzen
+          </button>
           <button type="submit" class="btn btn--primary" [disabled]="form.invalid || status() === 'saving'">
             <app-icon name="check" [size]="16" /> Speichern
           </button>
@@ -89,7 +105,15 @@
       <!-- ============== HEADER ============== -->
       @if (active() === 'header') {
         <section class="card" formGroupName="header">
-          <h2>Marke &amp; Navigation</h2>
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">Marke &amp; Navigation</h2>
+              </div>
+            </div>
+          </header>
           <div class="grid-2">
             <label>
               <span>Markenname</span>
@@ -140,7 +164,15 @@
       <!-- ============== HERO ============== -->
       @if (active() === 'hero') {
         <section class="card" formGroupName="hero">
-          <h2>Hero — Schlagzeilen &amp; CTAs</h2>
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">Hero — Schlagzeilen &amp; CTAs</h2>
+              </div>
+            </div>
+          </header>
           <div class="grid-2">
             <label class="span-2">
               <span>Eyebrow</span>
@@ -292,7 +324,15 @@
                    active() === 'servicesHeader' ? 'servicesHeader' :
                    active() === 'videosHeader' ? 'videosHeader' : 'badgesHeader';
         <section class="card" [formGroupName]="key">
-          <h2>Sektions-Header</h2>
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">Sektions-Header</h2>
+              </div>
+            </div>
+          </header>
           <div class="grid-2">
             <label class="span-2">
               <span>Eyebrow</span>
@@ -313,7 +353,15 @@
       <!-- ============== FEATURES ============== -->
       @if (active() === 'features') {
         <section class="card">
-          <h2>Feature-Karten</h2>
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">Feature-Karten</h2>
+              </div>
+            </div>
+          </header>
           <div formArrayName="features">
             <div class="cards-stack" cdkDropList (cdkDropListDropped)="drop($event, featuresArr)">
               @for (f of featuresArr.controls; track f; let i = $index) {
@@ -365,7 +413,15 @@
       <!-- ============== SERVICES ============== -->
       @if (active() === 'services') {
         <section class="card">
-          <h2>Service-Karten</h2>
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">Service-Karten</h2>
+              </div>
+            </div>
+          </header>
           <div formArrayName="services">
             <div class="cards-stack" cdkDropList (cdkDropListDropped)="drop($event, servicesArr)">
               @for (s of servicesArr.controls; track s; let i = $index) {
@@ -409,7 +465,15 @@
       <!-- ============== SHOWCASE ============== -->
       @if (active() === 'showcase') {
         <section class="card" formGroupName="showcase">
-          <h2>Vorher / Nachher</h2>
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">Vorher / Nachher</h2>
+              </div>
+            </div>
+          </header>
           <div class="grid-2">
             <label><span>Vorher · Label</span><input type="text" formControlName="beforeLabel" /></label>
             <label><span>Nachher · Label</span><input type="text" formControlName="afterLabel" /></label>
@@ -433,7 +497,15 @@
       <!-- ============== VIDEOS (YouTube) ============== -->
       @if (active() === 'videos') {
         <section class="card" formGroupName="videos">
-          <h2>YouTube-Playlist</h2>
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">YouTube-Playlist</h2>
+              </div>
+            </div>
+          </header>
           <p class="admin-hint">
             <strong>Tipp:</strong> Die ausgelieferten IDs sind Platzhalter
             (Rick Astley, PSY …). Ersetze sie durch die echten IDs der
@@ -466,7 +538,15 @@
       <!-- ============== BADGES ============== -->
       @if (active() === 'badges') {
         <section class="card">
-          <h2>Zertifikate / Vertrauenssiegel</h2>
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">Zertifikate / Vertrauenssiegel</h2>
+              </div>
+            </div>
+          </header>
           <div formArrayName="badges">
             <div class="cards-stack" cdkDropList (cdkDropListDropped)="drop($event, badgesArr)">
               @for (b of badgesArr.controls; track b; let i = $index) {
@@ -503,7 +583,15 @@
       <!-- ============== GUARANTEE ============== -->
       @if (active() === 'guarantee') {
         <section class="card" formGroupName="guarantee">
-          <h2>Zufriedenheits-Garantie</h2>
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">Zufriedenheits-Garantie</h2>
+              </div>
+            </div>
+          </header>
           <div class="grid-2">
             <label class="span-2"><span>Titel</span><input type="text" formControlName="title" /></label>
             <label class="span-2"><span>Text</span><textarea rows="3" formControlName="text"></textarea></label>
@@ -545,7 +633,15 @@
       <!-- ============== PLANS ============== -->
       @if (active() === 'plans') {
         <section class="card">
-          <h2>Preispläne</h2>
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">Preispläne</h2>
+              </div>
+            </div>
+          </header>
           <div formArrayName="plans">
             <div class="cards-stack" cdkDropList (cdkDropListDropped)="drop($event, plansArr)">
               @for (p of plansArr.controls; track p; let i = $index) {
@@ -614,7 +710,15 @@
       <!-- ============== TEAM ============== -->
       @if (active() === 'team') {
         <section class="card" formGroupName="team">
-          <h2>Beratungsteam</h2>
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">Beratungsteam</h2>
+              </div>
+            </div>
+          </header>
           <div class="grid-2">
             <label class="span-2"><span>Titel</span><input type="text" formControlName="teamTitle" /></label>
             <label class="span-2"><span>Text</span><textarea rows="2" formControlName="teamText"></textarea></label>
@@ -654,7 +758,15 @@
       <!-- ============== CTA STRIP ============== -->
       @if (active() === 'ctaStrip') {
         <section class="card" formGroupName="ctaStrip">
-          <h2>CTA-Streifen (dunkelgrün)</h2>
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">CTA-Streifen (dunkelgrün)</h2>
+              </div>
+            </div>
+          </header>
           <div class="grid-2">
             <label class="span-2"><span>Eyebrow</span><input type="text" formControlName="eyebrow" /></label>
             <label class="span-2"><span>Titel</span><input type="text" formControlName="title" /></label>
@@ -670,8 +782,16 @@
       <!-- ============== SEMINARS ============== -->
       @if (active() === 'seminarsHeader') {
         <section class="card" formGroupName="seminars" [formGroupName]="'seminarsHeader'">
-          <h2>Seminare · Header</h2>
-          <p class="text-muted" style="margin: 0 0 var(--space-4); font-size: var(--fs-sm)">
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">Seminare · Header</h2>
+              </div>
+            </div>
+          </header>
+          <p class="card__desc">
             Überschrift und Beschreibung der Seminare-Übersichtsseite
             (<code>/seminars</code>).
           </p>
@@ -685,8 +805,16 @@
 
       @if (active() === 'seminars') {
         <section class="card">
-          <h2>Seminare</h2>
-          <p class="text-muted" style="margin: 0 0 var(--space-4); font-size: var(--fs-sm)">
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">Seminare</h2>
+              </div>
+            </div>
+          </header>
+          <p class="card__desc">
             Übersicht aller Seminare. Klicken Sie auf <em>Bearbeiten</em>, um ein Seminar
             auf einer eigenen Seite zu ändern.
           </p>
@@ -744,7 +872,15 @@
       <!-- ============== FOOTER ============== -->
       @if (active() === 'footer') {
         <section class="card" formGroupName="footer">
-          <h2>Footer</h2>
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">Footer</h2>
+              </div>
+            </div>
+          </header>
           <div class="grid-2">
             <label><span>Marke</span><input type="text" formControlName="brand" /></label>
             <label><span>Copyright</span><input type="text" formControlName="copyright" /></label>
@@ -850,11 +986,41 @@
         </section>
       }
 
-      <div class="admin-main__footer">
-        <button type="button" class="btn btn--ghost" (click)="reset()">Zurücksetzen</button>
-        <button type="submit" class="btn btn--primary" [disabled]="form.invalid || status() === 'saving'">
-          <app-icon name="check" [size]="16" /> Speichern
-        </button>
+      <div class="admin-savebar">
+        <div class="admin-savebar__inner">
+          <div class="admin-savebar__status">
+            @switch (status()) {
+              @case ('saving') {
+                <span class="admin-status admin-status--saving">
+                  <span class="admin-status__dot"></span> Wird gespeichert …
+                </span>
+              }
+              @case ('saved') {
+                <span class="admin-status admin-status--saved">
+                  <app-icon name="check" [size]="13" /> Auf Server gespeichert
+                </span>
+              }
+              @case ('error') {
+                <span class="admin-status admin-status--error" [title]="error() ?? ''">
+                  <app-icon name="triangle-alert" [size]="13" /> {{ error() }}
+                </span>
+              }
+              @default {
+                <span class="admin-status admin-status--idle">
+                  <app-icon name="info-circle" [size]="13" /> Bereit
+                </span>
+              }
+            }
+          </div>
+          <div class="admin-savebar__actions">
+            <button type="button" class="btn btn--ghost" (click)="reset()" title="Auf Werkseinstellungen zurücksetzen">
+              <app-icon name="trash" [size]="14" /> Zurücksetzen
+            </button>
+            <button type="submit" class="btn btn--primary" [disabled]="form.invalid || status() === 'saving'">
+              <app-icon name="check" [size]="16" /> Speichern
+            </button>
+          </div>
+        </div>
       </div>
     </form>
   </main>

@@ -42,10 +42,18 @@ export class Home {
       .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
       .slice(0, 3),
   );
-  /** Header copy for the lecturers card. Reuses the old team* field names so the
-   *  content schema doesn't need to change. */
-  readonly teamTitle = computed(() => 'Unser Beratungsteam');
-  readonly teamText  = computed(() => 'Unsere Expert:innen beraten Sie persönlich — online, telefonisch oder vor Ort.');
+  /** Top row photos for the bento mosaic — up to 10. */
+  readonly topRowLecturers = computed(() =>
+    [...this.lecturers()]
+      .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
+      .slice(0, 10),
+  );
+  /** Bottom row photos — up to 4 (offset, fewer than the top). */
+  readonly bottomRowLecturers = computed(() =>
+    [...this.lecturers()]
+      .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
+      .slice(10, 14),
+  );
   readonly ctaStrip = this.content.ctaStrip;
   readonly footer = this.content.footer;
 

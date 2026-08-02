@@ -175,3 +175,72 @@
   background: var(--color-primary);
   color: #fff;
 }
+
+.lecturer-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.lecturer-card__duplicate {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.4rem 0.85rem;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-ink-600);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  border: 1px solid var(--color-ink-200);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 180ms ease, transform 180ms ease, background 160ms ease, color 160ms ease, border-color 160ms ease;
+
+  &:hover:not(:disabled) {
+    background: var(--color-brand-50);
+    color: var(--color-primary);
+    border-color: var(--color-brand-300);
+  }
+
+  &:disabled {
+    cursor: progress;
+    opacity: 1;
+    transform: translateY(0);
+    color: var(--color-primary);
+    border-color: var(--color-brand-300);
+    background: var(--color-brand-50);
+  }
+}
+
+.lecturer-card:hover .lecturer-card__duplicate,
+.lecturer-card:focus-within .lecturer-card__duplicate {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.lecturer-card__duplicate-spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Touch devices: keep duplicate always visible */
+@media (hover: none) {
+  .lecturer-card__duplicate {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

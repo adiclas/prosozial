@@ -44,9 +44,26 @@
                   }
                 </ul>
               }
-              <span class="lecturer-card__cta">
-                <app-icon name="settings" [size]="12" /> Bearbeiten
-              </span>
+              <div class="lecturer-card__actions">
+                <span class="lecturer-card__cta">
+                  <app-icon name="settings" [size]="12" /> Bearbeiten
+                </span>
+                <button
+                  type="button"
+                  class="lecturer-card__duplicate"
+                  (click)="duplicateLecturer(l, $event)"
+                  [disabled]="duplicating().has(l.id)"
+                  [attr.aria-label]="'Dozent ' + l.name + ' duplizieren'"
+                  [title]="'Duplizieren: ' + l.name"
+                >
+                  @if (duplicating().has(l.id)) {
+                    <span class="lecturer-card__duplicate-spinner" aria-hidden="true"></span>
+                    Wird kopiert …
+                  } @else {
+                    <app-icon name="copy" [size]="13" /> Duplizieren
+                  }
+                </button>
+              </div>
             </a>
           </li>
         }
