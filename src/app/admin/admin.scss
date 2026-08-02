@@ -288,6 +288,16 @@
   margin: var(--space-6) calc(-1 * var(--space-8)) calc(-1 * var(--space-6));
   padding: var(--space-3) var(--space-8);
   box-shadow: 0 -8px 24px rgba(15, 23, 42, 0.04);
+  transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 240ms ease;
+}
+
+.admin-savebar.is-hidden {
+  /* Slide the bar out of view so it doesn't visually compete with the form.
+     The bar still occupies space in the layout so the page doesn't jump. */
+  transform: translateY(110%);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .admin-savebar__inner {
@@ -435,6 +445,32 @@ label {
     font-weight: var(--fw-medium);
     color: var(--color-ink-600);
   }
+
+  /* Validation feedback (used by the videos form + similar fields). */
+  > .field-hint {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--fs-xs);
+    color: var(--color-ink-500);
+    app-icon { color: var(--color-primary); flex-shrink: 0; }
+  }
+
+  > .field-error {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: 4px;
+    font-size: var(--fs-xs);
+    color: #dc2626;
+    font-weight: var(--fw-medium);
+    app-icon { flex-shrink: 0; margin-top: 1px; }
+  }
+}
+
+/* Invalid input state — used by aria-invalid="true" */
+[aria-invalid='true'] {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12) !important;
 }
 
 input[type='text'],
@@ -571,6 +607,28 @@ input[type='color'] {
   border-top: 1px solid var(--color-border);
 }
 
+.seminar-table__actions-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.seminar-table__spinner {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 .admin-hint {
   margin: 0 0 var(--space-4);
   padding: var(--space-3) var(--space-4);
@@ -596,6 +654,7 @@ input[type='color'] {
 
 // Grip handle — only this starts a drag
 .drag-handle {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -610,6 +669,34 @@ input[type='color'] {
 
   &:hover { color: var(--color-primary); background: var(--color-brand-50); }
   &:active { cursor: grabbing; }
+
+  /* "Ziehen zum Sortieren" tooltip — appears on first hover so users discover
+     that draggable cards are reorderable. Uses ::after to avoid extra markup. */
+  &::after {
+    content: 'Ziehen zum Sortieren';
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-4px);
+    padding: 4px 8px;
+    background: var(--color-ink-900);
+    color: #fff;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    border-radius: var(--radius-xs);
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 160ms ease, transform 160ms ease;
+    z-index: 10;
+  }
+
+  &:hover::after,
+  &:focus-visible::after {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 }
 
 .drag-handle--lg {
@@ -647,6 +734,27 @@ input[type='color'] {
 
   &.single { grid-template-columns: auto 1fr auto; }
   > button { margin-bottom: 1px; }
+}
+
+/* Stack the "Ziel" select + optional "Eigene URL" input vertically
+   inside the grid cell so the array-row keeps its 4-column layout. */
+.nav-link-target {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.nav-link-preview {
+  display: inline-block;
+  margin: 0;
+  font-family: ui-monospace, SFMono-Regular, monospace;
+  font-size: var(--fs-xs);
+  color: var(--color-primary);
+  background: var(--color-brand-50);
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+  word-break: break-all;
 }
 
 /* ---- CDK overrides ---- */
@@ -692,6 +800,82 @@ input[type='color'] {
 .array-row:hover .drag-handle,
 .card--draggable:hover .drag-handle {
   color: var(--color-ink-600);
+}
+
+/* ---------- Inline alert banners ---------- */
+.admin-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  margin-bottom: var(--space-5);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-size: var(--fs-sm);
+  animation: alert-in 280ms cubic-bezier(0.16, 1, 0.3, 1) backwards;
+
+  > app-icon { flex-shrink: 0; margin-top: 2px; }
+
+  > div {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    strong { font-weight: var(--fw-semibold); }
+    span   { color: inherit; opacity: 0.85; }
+  }
+
+  &--error {
+    background: #fef2f2;
+    border-color: rgba(185, 28, 28, 0.25);
+    color: #991b1b;
+    app-icon { color: #b91c1c; }
+  }
+
+  &--warn {
+    background: #fffbeb;
+    border-color: rgba(217, 158, 0, 0.35);
+    color: #78350f;
+    app-icon { color: #b45309; }
+  }
+
+  &__dismiss {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 160ms ease, background 160ms ease;
+
+    &:hover {
+      opacity: 1;
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    app-icon { transform: rotate(135deg); margin: 0; }
+  }
+}
+
+@keyframes alert-in {
+  0%   { opacity: 0; transform: translateY(-8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Save-bar dirty state ---------- */
+.admin-status--dirty {
+  color: var(--color-accent-600);
+}
+
+.admin-status__dot--static {
+  animation: none;
+  opacity: 1;
 }
 
 @media (max-width: 900px) {

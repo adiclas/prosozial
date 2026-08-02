@@ -1,31 +1,91 @@
 <div class="seminar-detail-page">
   <div class="container">
     @if (seminar(); as s) {
-      <a routerLink="/seminars" class="back-link" (click)="goBack($event)">
-        ← Back to overview
-      </a>
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb" aria-label="Pfad">
+        <a routerLink="/seminars" (click)="goBack($event)">Seminare</a>
+        <app-icon name="arrow-right" [size]="10" class="breadcrumb__sep" aria-hidden="true" />
+        <span class="breadcrumb__current">{{ s.title }}</span>
+      </nav>
 
-      <h1 class="title">{{ s.title }}</h1>
-      <span class="status status--{{ s.status }}">{{ statusLabel(s.status) }}</span>
+      <!-- Header -->
+      <header class="detail-head">
+        <div class="detail-head__main">
+          <div class="detail-head__meta">
+            <span class="status status--{{ s.status }}">
+              <span class="status__dot"></span>
+              {{ statusLabel(s.status) }}
+            </span>
+            @if (sDates().length > 1) {
+              <span class="detail-head__count">
+                <app-icon name="check" [size]="13" />
+                {{ sDates().length }} Termine · {{ totalSessions() }} Sessions
+              </span>
+            }
+          </div>
+          <h1 class="detail-head__title">{{ s.title }}</h1>
+          <p class="detail-head__provider">
+            <app-icon name="user" [size]="14" />
+            Veranstaltet von <strong>{{ s.provider }}</strong>
+          </p>
+        </div>
+
+        <!-- Register / waitlist CTA -->
+        <div class="detail-head__cta">
+          @if (s.status === 'available' || s.status === 'few-seats') {
+            <a href="#register" class="btn btn--primary btn--lg">
+              <app-icon name="check" [size]="16" />
+              Jetzt anmelden
+            </a>
+            <small class="detail-head__cta-hint">Antwort innerhalb von 24h</small>
+          } @else if (s.status === 'fully-booked') {
+            <button type="button" class="btn btn--ghost btn--lg" (click)="joinWaitlist(s)">
+              <app-icon name="mail" [size]="16" />
+              Auf Warteliste setzen
+            </button>
+            <small class="detail-head__cta-hint">Wir benachrichtigen Sie bei Freiwerden</small>
+          } @else if (s.status === 'cancelled') {
+            <span class="btn btn--ghost btn--lg is-disabled">
+              <app-icon name="triangle-alert" [size]="16" />
+              Abgesagt
+            </span>
+          }
+        </div>
+      </header>
 
       <div class="grid">
         <!-- Left column: key/value info -->
-        <div class="col col--info">
+        <aside class="col col--info">
+          <h2 class="col__heading">Details</h2>
           <dl class="info">
-            <div><dt>Status</dt><dd>{{ statusLabel(s.status) }}</dd></div>
-            <div><dt>Provider</dt><dd>{{ s.provider }}</dd></div>
-            <div><dt>Takes place at</dt><dd>{{ s.location }}</dd></div>
-            <div><dt>Supplier Location</dt><dd>{{ s.supplierLocation }}</dd></div>
-            <div><dt>Cost</dt><dd>{{ s.cost }}</dd></div>
+            <div>
+              <dt>Veranstalter</dt>
+              <dd>{{ s.provider }}</dd>
+            </div>
+            <div>
+              <dt>Veranstaltungsort</dt>
+              <dd>
+                {{ s.location }}
+                @if (s.supplierLocation) {
+                  <small class="info__addr">{{ s.supplierLocation }}</small>
+                }
+              </dd>
+            </div>
+            @if (s.cost) {
+              <div>
+                <dt>Kosten</dt>
+                <dd class="info__cost">{{ formatCost(s.cost) }}</dd>
+              </div>
+            }
             @if (s.documents?.length) {
               <div>
-                <dt>Documents</dt>
+                <dt>Dokumente</dt>
                 <dd>
                   <ul class="docs">
                     @for (d of s.documents; track d.url) {
                       <li>
                         <a [href]="d.url" target="_blank" rel="noopener">
-                          <app-icon name="play" [size]="14" />
+                          <app-icon name="arrow-right" [size]="13" />
                           {{ d.label }}
                         </a>
                       </li>
@@ -35,56 +95,70 @@
               </div>
             }
           </dl>
-        </div>
 
-        <!-- Middle column: dates -->
-        <div class="col col--dates">
-          <h2>Dates</h2>
-          @for (d of s.dates; track d.date) {
-            <div class="date-block">
-              <h3 class="date-block__date">
-                {{ d.date }}
-                @if (d.label) { <small>{{ d.label }}</small> }
-              </h3>
-              <ul class="date-block__sessions">
-                @for (sess of d.sessions; track sess.time) {
-                  <li>
-                    <span class="time">{{ sess.time }}</span>
-                    <span class="title">{{ sess.title }}</span>
-                  </li>
-                }
-              </ul>
-            </div>
-          }
-        </div>
-
-        <!-- Right column: lecturers + contents -->
-        <div class="col col--side">
           @if (lecturers().length) {
-            <section>
-              <h2>Lecturers</h2>
+            <section class="info-lecturers">
+              <h2 class="col__heading">Vortragende</h2>
               <ul class="lecturers">
                 @for (l of lecturers(); track l.id) {
                   <li>
-                    @if (l.avatar) {
-                      <img [src]="l.avatar" [alt]="l.name" />
-                    } @else {
-                      <span class="avatar" [style.background]="l.avatarColor || 'var(--color-primary)'" aria-hidden="true">
-                        {{ l.name.charAt(0) }}
+                    <a [routerLink]="['/seminars/lecturers', l.id]"
+                       class="lecturers__link"
+                       [attr.aria-label]="'Profil von ' + l.name + ' ansehen'">
+                      <span class="lecturers__avatar"
+                            [style.background]="l.avatarColor || 'var(--color-primary)'"
+                            aria-hidden="true">
+                        @if (l.avatar) {
+                          <img [src]="l.avatar" [alt]="''" />
+                        } @else {
+                          {{ l.name.charAt(0) }}
+                        }
                       </span>
-                    }
-                    <div>
-                      <strong>{{ l.name }}</strong>
-                      <small>{{ l.role }}</small>
-                    </div>
+                      <span class="lecturers__meta">
+                        <strong>{{ l.name }}</strong>
+                        <small>{{ l.role }}</small>
+                      </span>
+                      <app-icon name="arrow-right" [size]="14" class="lecturers__chevron" aria-hidden="true" />
+                    </a>
                   </li>
                 }
               </ul>
             </section>
           }
+        </aside>
 
-          <section>
-            <h2>Contents</h2>
+        <!-- Center column: dates + contents -->
+        <main class="col col--main">
+          @if (s.dates?.length) {
+            <section class="dates" id="dates">
+              <h2 class="col__heading">
+                Termine
+                <span class="col__heading-count">{{ sDates().length }}</span>
+              </h2>
+
+              @for (d of sDates(); track d.date) {
+                <article class="date-block">
+                  <header class="date-block__head">
+                    <h3 class="date-block__date">{{ d.date }}</h3>
+                    <span class="date-block__count">
+                      {{ d.sessions.length }} {{ d.sessions.length === 1 ? 'Session' : 'Sessions' }}
+                    </span>
+                  </header>
+                  <ol class="date-block__sessions">
+                    @for (sess of d.sessions; track sess.time) {
+                      <li>
+                        <span class="date-block__time" aria-hidden="true">{{ sess.time }}</span>
+                        <span class="date-block__title">{{ sess.title }}</span>
+                      </li>
+                    }
+                  </ol>
+                </article>
+              }
+            </section>
+          }
+
+          <section class="contents" id="contents">
+            <h2 class="col__heading">Inhalt</h2>
             <p class="contents-intro">{{ s.description }}</p>
             @if (s.bullets?.length) {
               <ul class="bullets">
@@ -94,7 +168,32 @@
               </ul>
             }
           </section>
-        </div>
+
+          <!-- Register anchor for the CTA -->
+          <section class="register" id="register">
+            <h2 class="col__heading">Anmeldung</h2>
+            @if (s.status === 'cancelled') {
+              <p class="register__msg register__msg--cancelled">
+                <app-icon name="triangle-alert" [size]="16" />
+                Dieses Seminar wurde abgesagt. Bei Fragen wenden Sie sich bitte an unser Team.
+              </p>
+            } @else if (s.status === 'fully-booked') {
+              <p class="register__msg register__msg--waitlist">
+                <app-icon name="mail" [size]="16" />
+                Aktuell ausgebucht. Tragen Sie sich in die Warteliste ein — wir melden uns, sobald ein Platz frei wird.
+              </p>
+            } @else {
+              <p class="register__msg">
+                <app-icon name="check" [size]="16" />
+                Senden Sie uns eine kurze Nachricht mit Ihrem Wunschtermin — wir bestätigen Ihre Anmeldung innerhalb von 24 Stunden.
+              </p>
+              <a href="mailto:{{ contactEmail() }}?subject=Anmeldung%20{{ s.title }}" class="btn btn--primary">
+                <app-icon name="mail" [size]="16" />
+                Anmeldung per E-Mail
+              </a>
+            }
+          </section>
+        </main>
       </div>
     } @else {
       <div class="not-found">

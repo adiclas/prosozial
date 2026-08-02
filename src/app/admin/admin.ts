@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { AbstractControl, FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import { ContentService } from '../core/content.service';
 import { IconName, ICONS } from '../icons';
@@ -23,6 +24,9 @@ type SectionId =
   | 'plans'
   | 'team'
   | 'ctaStrip'
+  | 'unserBeitrag'
+  | 'responsibility'
+  | 'aboutUs'
   | 'footer'
   | 'seminarsHeader'
   | 'seminars';
@@ -61,6 +65,46 @@ export class Admin {
   private readonly contentService = inject(ContentService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+
+  /**
+   * `:section` route param — maps a friendly URL like
+   * `/admin/header-navigation` to the matching `SectionId`.
+   * Defaults to `hero` when missing or unknown so the admin never lands
+   * on an empty screen.
+   */
+  private readonly sectionParam = toSignal(this.route.paramMap, { initialValue: null });
+
+  /** Static lookup table: URL slug → SectionId. */
+  private readonly SECTION_SLUGS: Record<string, SectionId> = {
+    'header':                  'header',
+    'header-navigation':       'header',
+    'header-marke':            'header',
+    'hero':                     'hero',
+    'features-header':         'featuresHeader',
+    'features':                'features',
+    'services-header':         'servicesHeader',
+    'services':                'services',
+    'showcase':                'showcase',
+    'videos-header':           'videosHeader',
+    'videos':                  'videos',
+    'badges-header':           'badgesHeader',
+    'badges':                  'badges',
+    'guarantee':               'guarantee',
+    'plans':                   'plans',
+    'team':                    'team',
+    'cta-strip':               'ctaStrip',
+    'cta':                     'ctaStrip',
+    'footer':                  'footer',
+    'seminars-header':         'seminarsHeader',
+    'seminars':                'seminars',
+    'unser-beitrag':           'unserBeitrag',
+    'unserbeitrag':            'unserBeitrag',
+    'responsibility':          'responsibility',
+    'verantwortung':          'responsibility',
+    'about-us':                'aboutUs',
+    'about':                   'aboutUs',
+  };
 
   readonly iconNames = ICON_NAMES;
   readonly user = this.auth.user;
@@ -68,6 +112,16 @@ export class Admin {
   readonly status = this.contentService.status;
   readonly error = this.contentService.error;
   readonly lastSyncedAt = this.contentService.lastSyncedAt;
+
+  /** Whether to show the validation-error banner above the section. */
+  readonly showValidationAlert = signal(false);
+  /** Description of invalid fields for the validation banner. */
+  readonly validationAlertMessage = computed(() => {
+    if (!this.showValidationAlert()) return '';
+    const invalid = this.collectInvalidFields(this.form);
+    if (!invalid.length) return 'Ein oder mehrere Felder sind ungültig.';
+    return `${invalid.length} Feld${invalid.length === 1 ? '' : 'er'} ausfüllen: ${invalid.slice(0, 3).join(', ')}${invalid.length > 3 ? ' …' : ''}`;
+  });
 
   readonly active = signal<SectionId>('hero');
 
@@ -93,6 +147,9 @@ export class Admin {
     { id: 'team',             label: 'Team',                 group: 'Vertrauen',   icon: 'user' },
     { id: 'ctaStrip',         label: 'CTA-Streifen',         group: 'Footer',      icon: 'send' },
     { id: 'footer',           label: 'Footer',               group: 'Footer',      icon: 'globe' },
+    { id: 'unserBeitrag',     label: 'Unser Beitrag',        group: 'Verantwortung', icon: 'heart' },
+    { id: 'responsibility',   label: 'Verantwortung',        group: 'Verantwortung', icon: 'globe' },
+    { id: 'aboutUs',           label: 'Über uns',             group: 'Unternehmen',   icon: 'sparkle' },
     { id: 'seminarsHeader',   label: 'Header — Seminare',    group: 'Seminare',    icon: 'menu' },
     { id: 'seminars',         label: 'Seminare',             group: 'Seminare',    icon: 'book' },
     { route: '/seminars/lecturers', label: 'Dozenten',       group: 'Seminare',    icon: 'trophy' },
@@ -142,8 +199,29 @@ export class Admin {
     }),
   );
 
+  /** Source seminars (full objects) used by the duplicate action. */
+  readonly fullSeminars = computed<any[]>(() => this.seminars()?.seminars ?? []);
+
+  /** IDs currently being duplicated (to disable the button + show spinner). */
+  readonly duplicating = signal<Set<string>>(new Set());
+
   // ---------- Form per section ----------
   readonly form: FormGroup = this.buildForm();
+
+  /**
+   * Sync the active section from the URL slug (`:section` route param).
+   * Re-runs whenever the user clicks a different sidebar link (which calls
+   * `setActive` and navigates), or when the URL is loaded directly.
+   */
+  private readonly _sectionSync = effect(() => {
+    const slug = this.sectionParam()?.get('section');
+    if (!slug) return;
+    const mapped = this.SECTION_SLUGS[slug.toLowerCase()];
+    if (mapped && mapped !== this.active()) {
+      this.active.set(mapped);
+      this.showValidationAlert.set(false);
+    }
+  });
 
   private buildForm(): FormGroup {
     return this.fb.group({
@@ -280,6 +358,93 @@ export class Admin {
         phoneLabel: [this.current().ctaStrip.phoneLabel],
         phoneHref: [this.current().ctaStrip.phoneHref],
       }),
+      unserBeitrag: this.fb.group({
+        eyebrow: [this.current().unserBeitrag.eyebrow],
+        title: [this.current().unserBeitrag.title],
+        lead: [this.current().unserBeitrag.lead],
+        intro: [this.current().unserBeitrag.intro],
+        items: this.fb.array(
+          (this.current().unserBeitrag.items ?? []).map((it: any) =>
+            this.fb.group({
+              icon: [it.icon],
+              title: [it.title],
+              text: [it.text],
+              stat: [it.stat ?? ''],
+              statLabel: [it.statLabel ?? ''],
+            }),
+          ),
+        ),
+        ctaEyebrow: [this.current().unserBeitrag.ctaEyebrow],
+        ctaTitle: [this.current().unserBeitrag.ctaTitle],
+        ctaText: [this.current().unserBeitrag.ctaText],
+        ctaLabel: [this.current().unserBeitrag.ctaLabel],
+        ctaHref: [this.current().unserBeitrag.ctaHref],
+      }),
+      responsibility: this.fb.group({
+        eyebrow: [this.current().responsibility.eyebrow],
+        title: [this.current().responsibility.title],
+        lead: [this.current().responsibility.lead],
+        gridTitle: [this.current().responsibility.gridTitle],
+        feature: this.fb.group({
+          category: [this.current().responsibility.feature.category],
+          title: [this.current().responsibility.feature.title],
+          excerpt: [this.current().responsibility.feature.excerpt],
+          image: [this.current().responsibility.feature.image ?? ''],
+          href: [this.current().responsibility.feature.href],
+          meta: [this.current().responsibility.feature.meta ?? ''],
+        }),
+        articles: this.fb.array(
+          (this.current().responsibility.articles ?? []).map((a: any) =>
+            this.fb.group({
+              category: [a.category],
+              title: [a.title, Validators.required],
+              excerpt: [a.excerpt],
+              image: [a.image ?? ''],
+              href: [a.href, Validators.required],
+              meta: [a.meta ?? ''],
+            }),
+          ),
+        ),
+      }),
+      aboutUs: this.fb.group({
+        eyebrow: [this.current().aboutUs.eyebrow],
+        title: [this.current().aboutUs.title],
+        lead: [this.current().aboutUs.lead],
+        heroCategory: [this.current().aboutUs.heroCategory],
+        heroTitle: [this.current().aboutUs.heroTitle],
+        heroExcerpt: [this.current().aboutUs.heroExcerpt],
+        heroImage: [this.current().aboutUs.heroImage ?? ''],
+        heroCtaLabel: [this.current().aboutUs.heroCtaLabel],
+        heroCtaHref: [this.current().aboutUs.heroCtaHref],
+        storyHeading: [this.current().aboutUs.storyHeading],
+        stories: this.fb.array(
+          (this.current().aboutUs.stories ?? []).map((s: any) =>
+            this.fb.group({
+              category: [s.category],
+              title: [s.title, Validators.required],
+              text: [s.text],
+              image: [s.image ?? ''],
+              imageSide: [s.imageSide ?? 'right'],
+              ctaLabel: [s.ctaLabel ?? ''],
+              ctaHref: [s.ctaHref ?? ''],
+            }),
+          ),
+        ),
+        statsHeading: [this.current().aboutUs.statsHeading],
+        stats: this.fb.array(
+          (this.current().aboutUs.stats ?? []).map((st: any) =>
+            this.fb.group({
+              value: [st.value],
+              label: [st.label],
+            }),
+          ),
+        ),
+        ctaEyebrow: [this.current().aboutUs.ctaEyebrow],
+        ctaTitle: [this.current().aboutUs.ctaTitle],
+        ctaText: [this.current().aboutUs.ctaText],
+        ctaLabel: [this.current().aboutUs.ctaLabel],
+        ctaHref: [this.current().aboutUs.ctaHref],
+      }),
       seminarsHeader: this.sectionHeaderGroup(this.current().seminars.header),
       seminars: this.fb.group({
         header: this.sectionHeaderGroup(this.current().seminars.header),
@@ -345,6 +510,10 @@ export class Admin {
   get headerNavArr(): FormArray { return this.form.get('header.navLinks') as FormArray; }
   get footerColumnsArr(): FormArray { return this.form.get('footer.columns') as FormArray; }
   get footerContactArr(): FormArray { return this.form.get('footer.contact') as FormArray; }
+  get beitragItemsArr(): FormArray { return this.form.get('unserBeitrag.items') as FormArray; }
+  get responsibilityArticlesArr(): FormArray { return this.form.get('responsibility.articles') as FormArray; }
+  get aboutStoriesArr(): FormArray { return this.form.get('aboutUs.stories') as FormArray; }
+  get aboutStatsArr(): FormArray { return this.form.get('aboutUs.stats') as FormArray; }
   get footerLegalArr(): FormArray { return this.form.get('footer.legal') as FormArray; }
 
   planFeaturesAt(i: number): FormArray {
@@ -362,63 +531,72 @@ export class Admin {
     arr.removeAt(i);
   }
 
-  newFeature(): FormGroup {
-    return this.fb.group({
-      title: ['', Validators.required],
-      description: [''],
-      icon: ['star'],
-      highlight: [false],
-      cta: [''],
-    });
-  }
-  newService(): FormGroup {
-    return this.fb.group({ title: ['', Validators.required], description: [''], icon: ['star'] });
-  }
-  newBadge(): FormGroup {
-    return this.fb.group({ title: ['', Validators.required], description: [''], icon: ['star'] });
-  }
-  newPlan(): FormGroup {
-    return this.fb.group({
-      name: ['', Validators.required],
-      badge: [''],
-      price: [''],
-      period: [''],
-      description: [''],
-      cta: ['', Validators.required],
-      variant: ['basic', Validators.required],
-      features: this.fb.array([]),
-    });
-  }
-  newTeamMember(): FormGroup {
-    return this.fb.group({
-      name: ['', Validators.required],
-      role: [''],
-      rating: [5, [Validators.min(1), Validators.max(5)]],
-      initials: [''],
-      avatarColor: ['#4daf6a'],
-    });
-  }
-  newNavLink(): FormGroup {
-    return this.fb.group({ label: ['', Validators.required], href: ['#', Validators.required] });
-  }
-  newTrustItem(): FormGroup {
-    return this.fb.group({ icon: ['shield-check'], label: ['', Validators.required] });
-  }
-  newAvatar(): FormGroup {
-    return this.fb.group({ initials: ['A'], color: ['#4daf6a'] });
-  }
-  newColumn(): FormGroup {
-    return this.fb.group({ title: ['', Validators.required], links: this.fb.array([]) });
-  }
-  newColumnLink(): FormGroup {
-    return this.fb.group({ label: ['', Validators.required], href: ['#', Validators.required] });
-  }
-  newContact(): FormGroup {
-    return this.fb.group({ icon: ['phone'], text: ['', Validators.required] });
-  }
-  newLegal(): FormGroup {
-    return this.fb.group({ label: ['', Validators.required], href: ['#', Validators.required] });
-  }
+  // ----- Factory functions for new FormArray rows.
+  // These MUST be arrow functions (or pre-bound) — Angular templates invoke
+  // them via `this.factoryName` and lose the implicit `this` binding, which
+  // causes `Cannot read properties of undefined (reading 'fb')`. Arrow
+  // functions capture `this` lexically at definition time.
+  readonly newFeature = (): FormGroup => this.fb.group({
+    title: ['', Validators.required],
+    description: [''],
+    icon: ['star'],
+    highlight: [false],
+    cta: [''],
+  });
+  readonly newService = (): FormGroup => this.fb.group({ title: ['', Validators.required], description: [''], icon: ['star'] });
+  readonly newBadge = (): FormGroup => this.fb.group({ title: ['', Validators.required], description: [''], icon: ['star'] });
+  readonly newPlan = (): FormGroup => this.fb.group({
+    name: ['', Validators.required],
+    badge: [''],
+    price: [''],
+    period: [''],
+    description: [''],
+    cta: ['', Validators.required],
+    variant: ['basic', Validators.required],
+    features: this.fb.array([]),
+  });
+  readonly newTeamMember = (): FormGroup => this.fb.group({
+    name: ['', Validators.required],
+    role: [''],
+    rating: [5, [Validators.min(1), Validators.max(5)]],
+    initials: [''],
+    avatarColor: ['#4daf6a'],
+  });
+  readonly newNavLink = (): FormGroup => this.fb.group({ label: ['', Validators.required], href: ['#', Validators.required] });
+  readonly newTrustItem = (): FormGroup => this.fb.group({ icon: ['shield-check'], label: ['', Validators.required] });
+  readonly newAvatar = (): FormGroup => this.fb.group({ initials: ['A'], color: ['#4daf6a'] });
+  readonly newColumn = (): FormGroup => this.fb.group({ title: ['', Validators.required], links: this.fb.array([]) });
+  readonly newColumnLink = (): FormGroup => this.fb.group({ label: ['', Validators.required], href: ['#', Validators.required] });
+  readonly newContact = (): FormGroup => this.fb.group({ icon: ['phone'], text: ['', Validators.required] });
+  readonly newLegal = (): FormGroup => this.fb.group({ label: ['', Validators.required], href: ['#', Validators.required] });
+  readonly newBeitragItem = (): FormGroup => this.fb.group({
+    icon: ['shield-check'],
+    title: ['', Validators.required],
+    text: ['', Validators.required],
+    stat: [''],
+    statLabel: [''],
+  });
+  readonly newResponsibilityArticle = (): FormGroup => this.fb.group({
+    category: ['Neu'],
+    title: ['', Validators.required],
+    excerpt: [''],
+    image: [''],
+    href: ['/verantwortung', Validators.required],
+    meta: [''],
+  });
+  readonly newAboutStory = (): FormGroup => this.fb.group({
+    category: [''],
+    title: ['', Validators.required],
+    text: [''],
+    image: [''],
+    imageSide: ['right'],
+    ctaLabel: [''],
+    ctaHref: [''],
+  });
+  readonly newAboutStat = (): FormGroup => this.fb.group({
+    value: [''],
+    label: [''],
+  });
 
   addStringItem(arr: FormArray): void {
     arr.push(this.fb.control('', Validators.required));
@@ -442,6 +620,76 @@ export class Admin {
   }
 
   /**
+   * Live count of valid YouTube entries in the videoIds textarea.
+   * Reads the form value directly so it updates as the user types.
+   * Used by the template to render a "X valid entries" hint that gives
+   * feedback before the user tries to save.
+   */
+  readonly videoIdsValidCount = computed<number>(() => {
+    const raw = (this.form.get('videos.videoIds')?.value ?? '') as string;
+    const ids = raw.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+    return ids.filter((s) => /^([a-zA-Z0-9_-]{11}|https?:\/\/\S+)$/.test(s)).length;
+  });
+
+  /**
+   * Predefined pages that admins can target from the navigation-links
+   * dropdown. Mirrors the public nav so admins don't have to type URL
+   * paths by hand. Keep in sync with `app.routes.ts`.
+   */
+  readonly navTargetOptions = computed<{ label: string; href: string }[]>(() => [
+    { label: '— Startseite',                          href: '/' },
+    { label: '— Seminare',                            href: '/seminars' },
+    { label: '— Dozenten (Liste)',                    href: '/seminars/lecturers' },
+    { label: '— Unser Beitrag',                       href: '/unserbeitrag' },
+    { label: '— Verantwortung',                       href: '/verantwortung' },
+    { label: '— Über uns',                            href: '/ueber-uns' },
+    { label: '— Login',                               href: '/login' },
+    { label: '# Bewertungen (Anker)',                 href: '#bewertungen' },
+    { label: '# Kontakt (Anker)',                     href: '#kontakt' },
+    { label: '# Produkte (Anker)',                    href: '#produkte' },
+    { label: '# Ablauf (Anker)',                      href: '#ablauf' },
+  ]);
+
+  /**
+   * Set the `href` field on a navigation-link row when the user picks
+   * a value from the select dropdown. Picking the literal `__custom__`
+   * sentinel clears `href` so the template reveals the free-form text
+   * input (which writes back via `setCustomHref()`).
+   */
+  onNavLinkHrefChange(index: number, event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const value = select.value;
+    const row = this.headerNavArr.at(index);
+    if (value === '__custom__') {
+      // Keep whatever the user has already typed in the custom field;
+      // just flip the marker so the template shows the right input.
+      const current = row.get('href')?.value ?? '';
+      if (this.matchesKnownTarget(current)) {
+        row.get('href')?.setValue('');
+      }
+    } else {
+      row.get('href')?.setValue(value);
+    }
+  }
+
+  /**
+   * True when the given `href` exactly matches one of the predefined
+   * nav targets. Used to decide whether to show the "Eigene URL" input
+   * or just a readonly preview of the current value.
+   */
+  matchesKnownTarget(href: string | null | undefined): boolean {
+    if (!href) return false;
+    return this.navTargetOptions().some((opt) => opt.href === href);
+  }
+
+  /** Sync a custom URL typed into the "Eigene URL" input back to `href`. */
+  setCustomHref(index: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const row = this.headerNavArr.at(index);
+    row.get('href')?.setValue(input.value);
+  }
+
+  /**
    * Reorders a FormArray after a drag-drop event. The control is moved
    * (not just the data) so the form's `getRawValue()` reflects the new order
    * and the persisted payload on save is correct.
@@ -458,8 +706,18 @@ export class Admin {
   async save(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
+      // Show the validation banner so the user knows why their click was
+      // a no-op. The banner lists the first 3 invalid field names.
+      this.showValidationAlert.set(true);
+      // Scroll the banner into view (in case the user clicked the save
+      // button in the sticky footer and the relevant fields are far away).
+      queueMicrotask(() => {
+        document.querySelector('.admin-alert')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
       return;
     }
+    // Clear the validation banner once we proceed with a valid save.
+    this.showValidationAlert.set(false);
     const value = this.form.getRawValue() as any;
     // The admin form keeps `videos.videoIds` as a newline-separated string
     // (easier to edit in a textarea). Split it back to a string[] before
@@ -476,23 +734,205 @@ export class Admin {
   async reset(): Promise<void> {
     if (!confirm('Alle Inhalte auf die Werkseinstellungen zurücksetzen?')) return;
     await this.contentService.reset();
-    // Rebuild the form to reflect new values
-    Object.keys(this.form.controls).forEach((k) => {
-      const newForm = this.buildForm();
-      this.form.setControl(k, newForm.get(k)!);
-    });
+    // Patch the existing form with the fresh defaults so that
+    // `formControlName` bindings stay intact (replacing controls via
+    // setControl breaks the template bindings).
+    this.syncFormFromContent();
+  }
+
+  /**
+   * Pull the latest values from the content service and patch them into the
+   * existing form. We deliberately avoid `setControl()` — replacing the
+   * underlying FormControls detaches the `formControlName` directives in the
+   * template, so user-typed values stop being read on save.
+   */
+  private syncFormFromContent(): void {
+    const fresh = this.contentService.content();
+    const videosString = (fresh?.videos?.videoIds ?? []).join('\n');
+    const payload: any = {
+      ...fresh,
+      videos: {
+        ...(fresh?.videos ?? {}),
+        videoIds: videosString,
+      },
+    };
+    this.form.patchValue(payload, { emitEvent: false });
+  }
+
+  /**
+   * Duplicates a seminar with a new unique id and " (Kopie)" appended to the
+   * title, then navigates to the edit page so the user can adjust it.
+   * All other fields (provider, dates, bullets, lecturerIds, etc.) are copied
+   * verbatim.
+   */
+  async duplicateSeminar(source: any, event: Event): Promise<void> {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.duplicating().has(source.id)) return;
+
+    const next = this.duplicating();
+    next.add(source.id);
+    this.duplicating.set(new Set(next));
+
+    try {
+      const all = this.fullSeminars() as any[];
+      const baseId = source.id;
+      const newId = this.uniqueSeminarId(baseId, all);
+      // structuredClone deep-copies all nested arrays/objects in one shot.
+      // Seminar payloads are JSON-safe (no functions, Dates, etc.) so this
+      // is safe and replaces the manual nested map-spread chain.
+      const copy: any = {
+        ...structuredClone(source),
+        id: newId,
+        title: this.uniqueSeminarTitle(source.title, all),
+      };
+      const currentContent = this.contentService.content();
+      const seminarsBlock = currentContent?.seminars ?? { header: { eyebrow: '', title: '', text: '' }, seminars: [] };
+      const nextContent = {
+        ...currentContent,
+        seminars: {
+          ...seminarsBlock,
+          seminars: [...all, copy],
+        },
+      };
+      const res = await this.contentService.save(nextContent);
+      if (res.ok) {
+        await this.router.navigate(['/seminars', newId, 'edit']);
+      }
+    } finally {
+      const done = this.duplicating();
+      done.delete(source.id);
+      this.duplicating.set(new Set(done));
+    }
+  }
+
+  /** Find a unique seminar id derived from `base` that doesn't collide. */
+  private uniqueSeminarId(base: string, all: any[]): string {
+    const taken = new Set(all.map((s) => s.id));
+    if (!taken.has(base)) return base;
+    for (let i = 2; i < 1000; i++) {
+      const candidate = `${base}-copy-${i}`;
+      if (!taken.has(candidate)) return candidate;
+    }
+    return `${base}-copy-${Date.now()}`;
+  }
+
+  /** Find a unique seminar title by appending " (Kopie)" / " (Kopie 2)" / … */
+  private uniqueSeminarTitle(title: string, all: any[]): string {
+    const taken = new Set(all.map((s) => (s.title ?? '').toLowerCase()));
+    const base = `${title} (Kopie)`;
+    if (!taken.has(base.toLowerCase())) return base;
+    for (let i = 2; i < 1000; i++) {
+      const candidate = `${title} (Kopie ${i})`;
+      if (!taken.has(candidate.toLowerCase())) return candidate;
+    }
+    return `${base} ${Date.now()}`;
   }
 
   async refresh(): Promise<void> {
     await this.contentService.refresh();
-    Object.keys(this.form.controls).forEach((k) => {
-      const newForm = this.buildForm();
-      this.form.setControl(k, newForm.get(k)!);
-    });
+    this.syncFormFromContent();
+  }
+
+  // -----------------------------------------------------------------
+  // Save-bar visibility + alert management
+  // -----------------------------------------------------------------
+
+  /**
+   * Hide the save bar when nothing is happening — only show it when the user
+   * has unsaved changes, when a save is in flight, when the server confirmed
+   * the save, or when the last save failed. This keeps the page calm when
+   * nothing needs attention.
+   */
+  readonly savebarHidden = computed(() => {
+    const s = this.status();
+    if (s === 'saving' || s === 'saved' || s === 'error') return false;
+    return !this.form.dirty;
+  });
+
+  /** Acknowledge the server-side error banner. */
+  dismissError(): void {
+    // ContentService keeps the error signal until the next save — clear it
+    // here so the user can dismiss without retrying.
+    this.contentService.clearError();
+  }
+
+  /** Acknowledge the client-side validation banner. */
+  dismissValidationAlert(): void {
+    this.showValidationAlert.set(false);
+  }
+
+  /**
+   * Walk the form tree and return a list of human-readable labels for every
+   * invalid (required / pattern / email / min / max / validator) control.
+   * Used by the validation banner to tell the user exactly what to fix.
+   */
+  private collectInvalidFields(group: FormGroup, prefix = ''): string[] {
+    const out: string[] = [];
+    const visit = (ctrl: AbstractControl, path: string): void => {
+      if (ctrl instanceof FormGroup) {
+        Object.keys(ctrl.controls).forEach((k) => visit(ctrl.controls[k], path ? `${path}.${k}` : k));
+      } else if (ctrl instanceof FormArray) {
+        ctrl.controls.forEach((c, i) => visit(c, `${path}[${i}]`));
+      } else if (ctrl.invalid && ctrl.errors) {
+        const label = this.fieldLabelFromPath(path) || path;
+        out.push(label);
+      }
+    };
+    visit(group, prefix);
+    return out;
+  }
+
+  /**
+   * Best-effort human label for a control path (`hero.titleLine1` → "Hero Titel Zeile 1").
+   * Falls back to the raw path if no label can be derived.
+   */
+  private fieldLabelFromPath(path: string): string {
+    if (!path) return '';
+    // Map a few common top-level sections to friendly names
+    const sectionAlias: Record<string, string> = {
+      header: 'Header',
+      hero: 'Hero',
+      featuresHeader: 'Header — Kategorien',
+      features: 'Feature-Karten',
+      servicesHeader: 'Header — Sortiment',
+      services: 'Service-Karten',
+      showcase: 'Vorher / Nachher',
+      videosHeader: 'Header — Videos',
+      videos: 'YouTube-Playlist',
+      badgesHeader: 'Header — Zertifikate',
+      badges: 'Zertifikate',
+      guarantee: 'Garantie',
+      plans: 'Preispläne',
+      team: 'Team',
+      ctaStrip: 'CTA-Streifen',
+      seminarsHeader: 'Seminare · Header',
+      seminars: 'Seminare',
+      footer: 'Footer',
+    };
+    const [section, ...rest] = path.split('.');
+    const sectionLabel = sectionAlias[section] ?? section;
+    if (!rest.length) return sectionLabel;
+    // Strip index brackets and prettify the remaining path
+    const field = rest.join('.').replace(/\[\d+\]/g, '');
+    if (!field) return sectionLabel;
+    return `${sectionLabel} · ${this.prettifyFieldName(field)}`;
+  }
+
+  /** camelCase / snake_case → "Titel Zeile 1" */
+  private prettifyFieldName(name: string): string {
+    return name
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/[_-]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
   }
 
   setActive(id: SectionId): void {
     this.active.set(id);
+    // Hide any stale validation banner when the admin switches sections —
+    // the validation was for the previous section's fields.
+    this.showValidationAlert.set(false);
   }
 
   logout(): void {

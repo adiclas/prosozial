@@ -1,0 +1,121 @@
+<!-- ============== HEADER ============== -->
+<header class="site-header" [class.is-open]="mobileNavOpen()">
+  <div class="container site-header__inner">
+    <a class="brand" routerLink="/" aria-label="Prosozial — Startseite">
+      <img src="logo.svg" [alt]="header().brand" width="140" height="40" />
+    </a>
+
+    <nav class="primary-nav" aria-label="Hauptnavigation">
+      @for (link of header().navLinks; track link.href) {
+        @if (link.href.startsWith('http')) {
+          <a [href]="link.href" target="_blank" rel="noopener">{{ link.label }}</a>
+        } @else if (link.href.startsWith('/') && !link.href.startsWith('/#')) {
+          <a [routerLink]="link.href">{{ link.label }}</a>
+        } @else {
+          <a [href]="link.href">{{ link.label }}</a>
+        }
+      }
+    </nav>
+
+    <div class="site-header__actions">
+      <button type="button" class="icon-btn" aria-label="Suche">
+        <app-icon name="search" [size]="20" />
+      </button>
+
+      @if (isAuthed()) {
+        <a routerLink="/dashboard" class="btn btn--ghost">
+          <app-icon name="home" [size]="14" />
+          Dashboard
+        </a>
+        <button type="button" class="btn btn--ghost" (click)="logout()">
+          <app-icon name="arrow-right" [size]="14" /> Logout
+        </button>
+      } @else {
+        <a [routerLink]="header().ctaHref" class="btn btn--primary">
+          {{ header().ctaLabel }}
+        </a>
+      }
+
+      <button
+        type="button"
+        class="icon-btn site-header__menu"
+        aria-label="Menü öffnen"
+        [attr.aria-expanded]="mobileNavOpen()"
+        (click)="toggleMobileNav()"
+      >
+        <app-icon [name]="mobileNavOpen() ? 'arrow-left' : 'menu'" [size]="22" />
+      </button>
+    </div>
+  </div>
+
+  @if (mobileNavOpen()) {
+    <div class="mobile-nav" role="dialog" aria-label="Mobiles Menü">
+      <div class="container">
+        @for (link of header().navLinks; track link.href) {
+          @if (link.href.startsWith('http')) {
+            <a [href]="link.href" target="_blank" rel="noopener" (click)="closeMobileNav()">{{ link.label }}</a>
+          } @else if (link.href.startsWith('/') && !link.href.startsWith('/#')) {
+            <a [routerLink]="link.href" (click)="closeMobileNav()">{{ link.label }}</a>
+          } @else {
+            <a [href]="link.href" (click)="closeMobileNav()">{{ link.label }}</a>
+          }
+        }
+
+        @if (isAuthed()) {
+          <a routerLink="/dashboard" (click)="closeMobileNav()">
+            <app-icon name="home" [size]="14" /> Dashboard
+          </a>
+          <button type="button" class="btn btn--ghost btn--block" (click)="logout(); closeMobileNav()">
+            Logout
+          </button>
+        } @else {
+          <a [routerLink]="header().ctaHref" class="btn btn--primary btn--block" (click)="closeMobileNav()">
+            {{ header().ctaLabel }}
+          </a>
+        }
+      </div>
+    </div>
+  }
+</header>
+
+<!-- ============== PAGE CONTENT ============== -->
+<main class="page-content">
+  <router-outlet />
+</main>
+
+<!-- ============== FOOTER ============== -->
+<footer class="site-footer">
+  <div class="container site-footer__inner">
+    <div class="site-footer__brand">
+      <img src="logo-white.svg" [alt]="footer().brand" width="140" height="40" />
+      <p>{{ footer().description }}</p>
+      <div class="site-footer__contact">
+        @for (c of footer().contact; track c.text) {
+          <span><app-icon [name]="c.icon" [size]="16" /> {{ c.text }}</span>
+        }
+      </div>
+    </div>
+
+    <div class="site-footer__cols">
+      @for (col of footer().columns; track col.title) {
+        <div>
+          <h5>{{ col.title }}</h5>
+          <ul>
+            @for (l of col.links; track l.label) {
+              <li><a [href]="l.href">{{ l.label }}</a></li>
+            }
+          </ul>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="container site-footer__bottom">
+    <small>{{ footer().copyright }}</small>
+    <div class="site-footer__legal">
+      @for (l of footer().legal; track l.label) {
+        <a [href]="l.href">{{ l.label }}</a>
+      }
+    </div>
+  </div>
+</footer>

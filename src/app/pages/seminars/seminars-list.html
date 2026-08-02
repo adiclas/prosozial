@@ -9,40 +9,188 @@
     @if (seminars().length === 0) {
       <p class="empty">Aktuell sind keine Seminare geplant.</p>
     } @else {
-      <ul class="seminar-grid" role="list">
-        @for (s of seminars(); track s.id) {
-          <li>
-            <a [routerLink]="['/seminars', s.id]" class="seminar-card">
-              <span class="status status--{{ s.status }}">{{ statusLabel(s.status) }}</span>
-              <h2 class="seminar-card__title">{{ s.title }}</h2>
-              <dl class="seminar-card__meta">
-                <div>
-                  <dt>Nächster Termin</dt>
-                  <dd>{{ nextDateLabel(s) }}</dd>
-                </div>
-                <div>
-                  <dt>Veranstalter</dt>
-                  <dd>{{ s.provider }}</dd>
-                </div>
-                <div>
-                  <dt>Ort</dt>
-                  <dd>{{ s.location }}</dd>
-                </div>
-                @if (s.cost) {
-                  <div>
-                    <dt>Kosten</dt>
-                    <dd>{{ s.cost }}</dd>
-                  </div>
+      <!-- ============== Featured + Day-strip hero ============== -->
+      <section class="featured-row">
+        <!-- Vertical date tile: large yellow featured + small stack -->
+        <div class="date-tile" aria-hidden="false">
+          @if (featuredBucket(); as f) {
+            <button type="button" class="date-tile__featured" (click)="toggleBucket(f.key)">
+              <span class="date-tile__num">{{ f.dateObj?.getDate() ?? '?' }}</span>
+              <span class="date-tile__month">
+                @if (f.dateObj) {
+                  {{ getMonthName(f.dateObj.getMonth()) }}
+                } @else {
+                  Termin
                 }
-              </dl>
-              <span class="seminar-card__cta">
-                Details
-                <app-icon name="arrow-right" [size]="14" />
               </span>
-            </a>
-          </li>
+              <span class="date-tile__weekday">
+                @if (f.dateObj) {
+                  {{ getWeekdayName(f.dateObj.getDay()) }}
+                } @else {
+                  folgt
+                }
+              </span>
+              <span class="date-tile__tag">(Featured)</span>
+            </button>
+            <!-- Small stacked day tiles for quick navigation -->
+            <ul class="date-tile__stack" aria-label="Weitere Termine">
+              @for (b of dayBuckets().slice(0, 6); track b.key) {
+                <li>
+                  <button type="button"
+                          class="date-tile__mini"
+                          [class.is-active]="b.key === f.key"
+                          (click)="toggleBucket(b.key)">
+                    <span class="date-tile__mini-num">{{ b.dateObj?.getDate() ?? '?' }}</span>
+                    @if (b.key === f.key) {
+                      <span class="date-tile__mini-marker" aria-hidden="true"></span>
+                    }
+                  </button>
+                </li>
+              }
+              <li>
+                <button type="button" class="date-tile__mini date-tile__mini--more" aria-label="Mehr Termine">
+                  <app-icon name="arrow-right" [size]="12" />
+                </button>
+              </li>
+            </ul>
+          } @else {
+            <span class="date-tile__featured">
+              <span class="date-tile__num">–</span>
+              <span class="date-tile__month">Keine Termine</span>
+            </span>
+          }
+        </div>
+
+        <!-- Featured visual card -->
+        <aside class="featured-card" aria-label="Empfohlen">
+          <div class="featured-card__art" aria-hidden="true">
+            <div class="featured-card__art-pattern"></div>
+            <strong class="featured-card__art-eyebrow">Empfohlen</strong>
+            <h2 class="featured-card__art-title">{{ seminars()[0]?.title }}</h2>
+            <p class="featured-card__art-sub">
+              {{ seminars()[0]?.provider }} ·
+              @if (seminars()[0]?.cost) { {{ seminars()[0]?.cost }} }
+            </p>
+          </div>
+        </aside>
+      </section>
+
+      <!-- ============== Section heading + week strip ============== -->
+      <header class="schedule-head">
+        <h2 class="schedule-head__title">
+          <strong>Termine</strong> in dieser Woche
+          <span class="schedule-head__count">{{ visibleBuckets().length }} Tage · {{ stats().total }} Sessions</span>
+        </h2>
+        <a class="schedule-head__all" routerLink="/seminars/lecturers">
+          Alle Dozent:innen ansehen
+          <app-icon name="arrow-right" [size]="14" />
+        </a>
+      </header>
+
+      <!-- Horizontal day-of-week quick-jump strip -->
+      <nav class="day-strip" aria-label="Schnellauswahl">
+        <button type="button" class="day-strip__btn day-strip__btn--dropdown">
+          Alle Kategorien
+          <app-icon name="arrow-right" [size]="11" />
+        </button>
+        <button type="button" class="day-strip__btn day-strip__btn--dropdown">
+          Veranstaltungsort
+          <app-icon name="arrow-right" [size]="11" />
+        </button>
+
+        <div class="day-strip__group">
+          @for (b of dayBuckets().slice(0, 7); track b.key; let i = $index) {
+            <button type="button"
+                    class="day-strip__btn"
+                    [class.is-today]="i === 0"
+                    [class.is-active]="isExpanded(b.key)"
+                    (click)="toggleBucket(b.key)">
+              @if (b.dateObj) {
+                <strong>{{ formatShortDay(b.dateObj) }}</strong>
+              } @else {
+                <strong>{{ b.dayLabel }}</strong>
+              }
+              <span class="day-strip__btn-count">{{ b.events.length }}</span>
+            </button>
+          }
+          <button type="button" class="day-strip__btn day-strip__btn--menu" aria-label="Filter">
+            <app-icon name="menu" [size]="14" />
+          </button>
+        </div>
+      </nav>
+
+      <!-- ============== Status filter chips ============== -->
+      <div class="status-filter">
+        @for (entry of statusFilterEntries(); track entry.id) {
+          <button type="button"
+                  class="status-filter__chip"
+                  [class.is-active]="isStatusActive(entry.id)"
+                  (click)="toggleStatus(entry.id)">
+            <span class="status-filter__dot" [style.background]="entry.color"></span>
+            {{ entry.label }}
+          </button>
         }
-      </ul>
+      </div>
+
+      <!-- ============== Day-by-day timeline ============== -->
+      @if (visibleBuckets().length === 0) {
+        <p class="empty">Keine Termine passen zu den ausgewählten Filtern.</p>
+      } @else {
+        <div class="timeline">
+          @for (b of visibleBuckets(); track b.key) {
+            <article class="timeline__day"
+                     [class.is-open]="isExpanded(b.key)">
+              <header class="timeline__day-head">
+                <div class="timeline__day-title">
+                  <span class="timeline__day-num">{{ b.dateObj?.getDate() ?? '–' }}</span>
+                  <span class="timeline__day-info">
+                    <strong>{{ b.dateObj ? getWeekdayName(b.dateObj.getDay()) : 'Termin' }}</strong>
+                    <small>({{ b.events.length }} {{ b.events.length === 1 ? 'Session' : 'Sessions' }})</small>
+                  </span>
+                </div>
+                <button type="button"
+                        class="timeline__day-toggle"
+                        (click)="toggleBucket(b.key)"
+                        [attr.aria-expanded]="isExpanded(b.key)"
+                        [attr.aria-label]="(isExpanded(b.key) ? 'Einklappen: ' : 'Ausklappen: ') + b.dayLabel">
+                  {{ isExpanded(b.key) ? '−' : '+' }}
+                </button>
+              </header>
+
+              @if (isExpanded(b.key)) {
+                <ul class="timeline__events">
+                  @for (ev of b.events; track ev.seminar.id + ev.session.time) {
+                    <li class="timeline__event" [attr.data-status]="ev.seminar.status">
+                      <span class="timeline__time" aria-hidden="true">
+                        <span class="timeline__time-icon">
+                          <app-icon name="play" [size]="14" />
+                        </span>
+                        <span class="timeline__time-text">{{ startTime(ev.session.time) }}</span>
+                      </span>
+                      <a [routerLink]="['/seminars', ev.seminar.id]" class="timeline__title">
+                        <strong>{{ ev.session.title }}</strong>
+                      </a>
+                      <span class="timeline__desc">{{ ev.seminar.description }}</span>
+                      <span class="timeline__venue">
+                        <app-icon name="user" [size]="13" />
+                        <span>
+                          {{ ev.seminar.location }}
+                          @if (ev.seminar.provider) {
+                            <small>{{ ev.seminar.provider }}</small>
+                          }
+                        </span>
+                      </span>
+                      <button type="button" class="timeline__bookmark" aria-label="Merken">
+                        <app-icon name="check" [size]="14" />
+                      </button>
+                    </li>
+                  }
+                </ul>
+              }
+            </article>
+          }
+        </div>
+      }
     }
   </div>
 </div>

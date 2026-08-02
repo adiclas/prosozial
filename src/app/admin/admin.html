@@ -20,19 +20,21 @@
                 class="admin-nav__item"
                 [routerLink]="item.route"
                 [class.is-active]="item.route === '/seminars/lecturers'"
+                [attr.aria-current]="item.route === '/seminars/lecturers' ? 'page' : null"
               >
-                <span class="admin-nav__icon"><app-icon [name]="item.icon" [size]="15" /></span>
+                <span class="admin-nav__icon" aria-hidden="true"><app-icon [name]="item.icon" [size]="15" /></span>
                 <span class="admin-nav__label">{{ item.label }}</span>
-                <app-icon name="arrow-right" [size]="12" class="admin-nav__chevron" />
+                <app-icon name="arrow-right" [size]="12" class="admin-nav__chevron" aria-hidden="true" />
               </a>
             } @else {
               <button
                 type="button"
                 class="admin-nav__item"
                 [class.is-active]="active() === item.id"
+                [attr.aria-current]="active() === item.id ? 'page' : null"
                 (click)="setActive(item.id!)"
               >
-                <span class="admin-nav__icon"><app-icon [name]="item.icon" [size]="15" /></span>
+                <span class="admin-nav__icon" aria-hidden="true"><app-icon [name]="item.icon" [size]="15" /></span>
                 <span class="admin-nav__label">{{ item.label }}</span>
               </button>
             }
@@ -53,6 +55,35 @@
 
   <main class="admin-main">
     <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+
+      <!-- Inline error alert (server-side save failure) -->
+      @if (status() === 'error' && error()) {
+        <div class="admin-alert admin-alert--error" role="alert">
+          <app-icon name="triangle-alert" [size]="16" />
+          <div>
+            <strong>Speichern fehlgeschlagen.</strong>
+            <span>{{ error() }}</span>
+          </div>
+          <button type="button" class="admin-alert__dismiss" (click)="dismissError()" aria-label="Fehlermeldung schließen">
+            <app-icon name="arrow-right" [size]="14" />
+          </button>
+        </div>
+      }
+
+      <!-- Inline validation error alert (client-side invalid form) -->
+      @if (showValidationAlert()) {
+        <div class="admin-alert admin-alert--warn" role="alert">
+          <app-icon name="triangle-alert" [size]="16" />
+          <div>
+            <strong>Bitte Pflichtfelder ausfüllen.</strong>
+            <span>{{ validationAlertMessage() }}</span>
+          </div>
+          <button type="button" class="admin-alert__dismiss" (click)="dismissValidationAlert()" aria-label="Hinweis schließen">
+            <app-icon name="arrow-right" [size]="14" />
+          </button>
+        </div>
+      }
+
       <header class="admin-main__topbar">
         <div class="admin-main__title">
           <nav class="admin-breadcrumb" aria-label="Position">
@@ -144,10 +175,33 @@
                     <span>Label</span>
                     <input type="text" formControlName="label" />
                   </label>
-                  <label>
-                    <span>Ziel</span>
-                    <input type="text" formControlName="href" />
-                  </label>
+                  <div class="nav-link-target">
+                    <label>
+                      <span>Ziel</span>
+                      <select (change)="onNavLinkHrefChange(i, $event)">
+                        @for (opt of navTargetOptions(); track opt.href) {
+                          <option [value]="opt.href" [selected]="l.get('href')?.value === opt.href">
+                            {{ opt.label }}
+                          </option>
+                        }
+                        <option value="__custom__" [selected]="!matchesKnownTarget(l.get('href')?.value)">
+                          [Eigene URL …]
+                        </option>
+                      </select>
+                    </label>
+                    @if (!matchesKnownTarget(l.get('href')?.value)) {
+                      <label>
+                        <span>Eigene URL</span>
+                        <input type="text" [value]="l.get('href')?.value ?? ''"
+                               (input)="setCustomHref(i, $event)"
+                               placeholder="/pfad oder https://…" />
+                      </label>
+                    } @else {
+                      <small class="field-hint nav-link-preview">
+                        → {{ l.get('href')?.value }}
+                      </small>
+                    }
+                  </div>
                 <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(headerNavArr, i)" aria-label="Entfernen">
                   <app-icon name="trash" [size]="14" />
                   </button>
@@ -521,15 +575,35 @@
                 formControlName="playlistUrl"
                 placeholder="https://www.youtube.com/playlist?list=…"
               />
+              @if (form.get('videos.playlistUrl')?.touched && form.get('videos.playlistUrl')?.invalid) {
+                <small class="field-error">Bitte eine gültige YouTube-Playlist-URL eingeben.</small>
+              }
             </label>
             <label class="span-2">
               <span>Video-IDs oder URLs (eine pro Zeile)</span>
               <textarea
                 rows="6"
                 formControlName="videoIds"
+                [attr.aria-invalid]="form.get('videos.videoIds')?.invalid ? 'true' : null"
+                [attr.aria-describedby]="form.get('videos.videoIds')?.invalid ? 'videoIds-error' : 'videoIds-hint'"
                 placeholder="g1mEFsG2Ebg&#10;https://youtu.be/abcDEF12345&#10;…"
                 style="font-family: ui-monospace, SFMono-Regular, monospace; font-size: var(--fs-sm)"
               ></textarea>
+
+              <!-- Live counter: how many valid entries detected -->
+              <small class="field-hint" id="videoIds-hint">
+                <app-icon name="check" [size]="12" />
+                {{ videoIdsValidCount() }} gültige{{ videoIdsValidCount() === 1 ? 'r' : '' }} Eintrag
+                erkannt — Titel &amp; Thumbnails werden automatisch geladen.
+              </small>
+
+              @if (form.get('videos.videoIds')?.touched && form.get('videos.videoIds')?.invalid) {
+                <small class="field-error" id="videoIds-error" role="alert">
+                  <app-icon name="triangle-alert" [size]="12" />
+                  Ungültige Zeile: „{{ form.get('videos.videoIds')?.errors?.['badId']?.value }}".
+                  Jede Zeile muss eine 11-stellige Video-ID oder eine vollständige URL sein.
+                </small>
+              }
             </label>
           </div>
         </section>
@@ -779,6 +853,296 @@
         </section>
       }
 
+      <!-- ============== UNSER BEITRAG ============== -->
+      @if (active() === 'unserBeitrag') {
+        <section class="card" formGroupName="unserBeitrag">
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">Unser Beitrag (CSR-Seite)</h2>
+              </div>
+            </div>
+          </header>
+
+          <div class="grid-2">
+            <label class="span-2"><span>Eyebrow</span><input type="text" formControlName="eyebrow" /></label>
+            <label class="span-2"><span>Titel</span><input type="text" formControlName="title" /></label>
+            <label class="span-2"><span>Lead</span><textarea rows="2" formControlName="lead"></textarea></label>
+            <label class="span-2"><span>Intro-Absatz</span><textarea rows="5" formControlName="intro"></textarea>
+              <small class="field-hint">Wird auf der öffentlichen Seite prominent dargestellt.</small>
+            </label>
+          </div>
+
+          <h3>Beiträge</h3>
+          <div formArrayName="items">
+            <div class="array-stack" cdkDropList (cdkDropListDropped)="drop($event, beitragItemsArr)">
+              @for (it of beitragItemsArr.controls; track it; let i = $index) {
+                <div class="card card--sub card--draggable" [formGroupName]="i" cdkDrag>
+                  <header class="card__head">
+                    <button type="button" cdkDragHandle class="drag-handle drag-handle--lg" aria-label="Reihenfolge ändern">
+                      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+                        <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                        <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                      </svg>
+                    </button>
+                    <strong>Beitrag {{ i + 1 }}</strong>
+                    <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(beitragItemsArr, i)" aria-label="Entfernen">
+                      <app-icon name="trash" [size]="14" />
+                    </button>
+                  </header>
+                  <div class="grid-2">
+                    <label>
+                      <span>Icon</span>
+                      <select formControlName="icon">
+                        @for (n of iconNames; track n) { <option [value]="n">{{ n }}</option> }
+                      </select>
+                    </label>
+                    <label>
+                      <span>Titel</span>
+                      <input type="text" formControlName="title" />
+                    </label>
+                    <label class="span-2">
+                      <span>Beschreibung</span>
+                      <textarea rows="2" formControlName="text"></textarea>
+                    </label>
+                    <label>
+                      <span>Stat (optional)</span>
+                      <input type="text" formControlName="stat" placeholder="z.B. 100%" />
+                    </label>
+                    <label>
+                      <span>Stat-Label (optional)</span>
+                      <input type="text" formControlName="statLabel" placeholder="z.B. TÜV-geprüft" />
+                    </label>
+                  </div>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn btn--ghost" (click)="addTo(beitragItemsArr, newBeitragItem)">+ Beitrag</button>
+          </div>
+
+          <h3>Abschluss-CTA</h3>
+          <div class="grid-2">
+            <label><span>Eyebrow</span><input type="text" formControlName="ctaEyebrow" /></label>
+            <label><span>Titel</span><input type="text" formControlName="ctaTitle" /></label>
+            <label class="span-2"><span>Text</span><textarea rows="2" formControlName="ctaText"></textarea></label>
+            <label><span>CTA · Label</span><input type="text" formControlName="ctaLabel" /></label>
+            <label><span>CTA · Ziel</span><input type="text" formControlName="ctaHref" /></label>
+          </div>
+        </section>
+      }
+
+      <!-- ============== VERANTWORTUNG (RESPONSIBILITY) ============== -->
+      @if (active() === 'responsibility') {
+        <section class="card" formGroupName="responsibility">
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">Verantwortung (Responsibility-Seite)</h2>
+              </div>
+            </div>
+          </header>
+
+          <div class="grid-2">
+            <label class="span-2"><span>Eyebrow</span><input type="text" formControlName="eyebrow" /></label>
+            <label class="span-2"><span>Titel</span><input type="text" formControlName="title" /></label>
+            <label class="span-2"><span>Lead</span><textarea rows="2" formControlName="lead"></textarea></label>
+            <label class="span-2"><span>Grid-Titel</span><input type="text" formControlName="gridTitle" /></label>
+          </div>
+
+          <h3>Feature-Artikel (Hero)</h3>
+          <div formGroupName="feature" class="grid-2">
+            <label><span>Kategorie</span><input type="text" formControlName="category" /></label>
+            <label><span>Meta (z.B. "Aktualisiert")</span><input type="text" formControlName="meta" /></label>
+            <label class="span-2"><span>Titel</span><input type="text" formControlName="title" /></label>
+            <label class="span-2"><span>Excerpt</span><textarea rows="2" formControlName="excerpt"></textarea></label>
+            <label><span>Bild-URL (optional)</span><input type="text" formControlName="image" placeholder="z.B. /assets/…" /></label>
+            <label><span>Link-Ziel</span><input type="text" formControlName="href" /></label>
+          </div>
+
+          <h3>Weitere Artikel (Grid)</h3>
+          <div formArrayName="articles">
+            <div class="array-stack" cdkDropList (cdkDropListDropped)="drop($event, responsibilityArticlesArr)">
+              @for (a of responsibilityArticlesArr.controls; track a; let i = $index) {
+                <div class="card card--sub card--draggable" [formGroupName]="i" cdkDrag>
+                  <header class="card__head">
+                    <button type="button" cdkDragHandle class="drag-handle drag-handle--lg" aria-label="Reihenfolge ändern">
+                      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+                        <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                        <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                      </svg>
+                    </button>
+                    <strong>Artikel {{ i + 1 }}</strong>
+                    <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(responsibilityArticlesArr, i)" aria-label="Entfernen">
+                      <app-icon name="trash" [size]="14" />
+                    </button>
+                  </header>
+                  <div class="grid-2">
+                    <label>
+                      <span>Kategorie</span>
+                      <input type="text" formControlName="category" />
+                    </label>
+                    <label>
+                      <span>Meta (optional)</span>
+                      <input type="text" formControlName="meta" placeholder="z.B. Logistik · 4 Min" />
+                    </label>
+                    <label class="span-2">
+                      <span>Titel</span>
+                      <input type="text" formControlName="title" />
+                    </label>
+                    <label class="span-2">
+                      <span>Excerpt</span>
+                      <textarea rows="2" formControlName="excerpt"></textarea>
+                    </label>
+                    <label>
+                      <span>Bild-URL (optional)</span>
+                      <input type="text" formControlName="image" placeholder="z.B. /assets/…" />
+                    </label>
+                    <label>
+                      <span>Link-Ziel</span>
+                      <input type="text" formControlName="href" />
+                    </label>
+                  </div>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn btn--ghost" (click)="addTo(responsibilityArticlesArr, newResponsibilityArticle)">+ Artikel</button>
+          </div>
+        </section>
+      }
+
+      <!-- ============== ÜBER UNS (ABOUT US) ============== -->
+      @if (active() === 'aboutUs') {
+        <section class="card" formGroupName="aboutUs">
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">Über uns (About-Us-Seite)</h2>
+              </div>
+            </div>
+          </header>
+
+          <div class="grid-2">
+            <label class="span-2"><span>Eyebrow</span><input type="text" formControlName="eyebrow" /></label>
+            <label class="span-2"><span>Titel</span><input type="text" formControlName="title" /></label>
+            <label class="span-2"><span>Lead</span><textarea rows="2" formControlName="lead"></textarea></label>
+          </div>
+
+          <h3>Hero-Karte</h3>
+          <div class="grid-2">
+            <label><span>Kategorie</span><input type="text" formControlName="heroCategory" /></label>
+            <label><span>CTA · Label</span><input type="text" formControlName="heroCtaLabel" /></label>
+            <label class="span-2"><span>Titel</span><input type="text" formControlName="heroTitle" /></label>
+            <label class="span-2"><span>Excerpt</span><textarea rows="3" formControlName="heroExcerpt"></textarea></label>
+            <label><span>Bild-URL (optional)</span><input type="text" formControlName="heroImage" placeholder="z.B. /assets/…" /></label>
+            <label><span>CTA · Ziel</span><input type="text" formControlName="heroCtaHref" /></label>
+          </div>
+
+          <h3>Story-Blöcke (Bild + Text, abwechselnd)</h3>
+          <div formArrayName="stories">
+            <div class="array-stack" cdkDropList (cdkDropListDropped)="drop($event, aboutStoriesArr)">
+              @for (s of aboutStoriesArr.controls; track s; let i = $index) {
+                <div class="card card--sub card--draggable" [formGroupName]="i" cdkDrag>
+                  <header class="card__head">
+                    <button type="button" cdkDragHandle class="drag-handle drag-handle--lg" aria-label="Reihenfolge ändern">
+                      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+                        <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                        <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                      </svg>
+                    </button>
+                    <strong>Story {{ i + 1 }}</strong>
+                    <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(aboutStoriesArr, i)" aria-label="Entfernen">
+                      <app-icon name="trash" [size]="14" />
+                    </button>
+                  </header>
+                  <div class="grid-2">
+                    <label>
+                      <span>Kategorie / Eyebrow</span>
+                      <input type="text" formControlName="category" placeholder="z.B. Seit 2008" />
+                    </label>
+                    <label>
+                      <span>Bild-Position</span>
+                      <select formControlName="imageSide">
+                        <option value="right">Rechts</option>
+                        <option value="left">Links</option>
+                      </select>
+                    </label>
+                    <label class="span-2">
+                      <span>Titel</span>
+                      <input type="text" formControlName="title" />
+                    </label>
+                    <label class="span-2">
+                      <span>Text (Absätze mit Leerzeichen trennen)</span>
+                      <textarea rows="5" formControlName="text"></textarea>
+                    </label>
+                    <label>
+                      <span>Bild-URL (optional)</span>
+                      <input type="text" formControlName="image" placeholder="z.B. /assets/…" />
+                    </label>
+                    <label>
+                      <span>CTA · Ziel (optional)</span>
+                      <input type="text" formControlName="ctaHref" />
+                    </label>
+                    <label class="span-2">
+                      <span>CTA · Label (optional)</span>
+                      <input type="text" formControlName="ctaLabel" placeholder="z.B. Mehr erfahren" />
+                    </label>
+                  </div>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn btn--ghost" (click)="addTo(aboutStoriesArr, newAboutStory)">+ Story</button>
+          </div>
+
+          <h3>Statistiken</h3>
+          <div formArrayName="stats">
+            <div class="array-stack" cdkDropList (cdkDropListDropped)="drop($event, aboutStatsArr)">
+              @for (st of aboutStatsArr.controls; track st; let i = $index) {
+                <div class="array-row single" [formGroupName]="i" cdkDrag>
+                  <button type="button" cdkDragHandle class="drag-handle" aria-label="Reihenfolge ändern">
+                    <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                      <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                      <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                    </svg>
+                  </button>
+                  <label class="grow">
+                    <span>Wert (z.B. "50+")</span>
+                    <input type="text" formControlName="value" />
+                  </label>
+                  <label class="grow">
+                    <span>Label</span>
+                    <input type="text" formControlName="label" />
+                  </label>
+                  <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(aboutStatsArr, i)" aria-label="Entfernen">
+                    <app-icon name="trash" [size]="14" />
+                  </button>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn btn--ghost btn--sm" (click)="addTo(aboutStatsArr, newAboutStat)">+ Statistik</button>
+          </div>
+
+          <label>
+            <span>Stat-Überschrift</span>
+            <input type="text" formControlName="statsHeading" />
+          </label>
+
+          <h3>Abschluss-CTA</h3>
+          <div class="grid-2">
+            <label><span>Eyebrow</span><input type="text" formControlName="ctaEyebrow" /></label>
+            <label><span>CTA · Label</span><input type="text" formControlName="ctaLabel" /></label>
+            <label class="span-2"><span>Titel</span><input type="text" formControlName="ctaTitle" /></label>
+            <label class="span-2"><span>Text</span><textarea rows="2" formControlName="ctaText"></textarea></label>
+            <label><span>CTA · Ziel</span><input type="text" formControlName="ctaHref" /></label>
+          </div>
+        </section>
+      }
+
       <!-- ============== SEMINARS ============== -->
       @if (active() === 'seminarsHeader') {
         <section class="card" formGroupName="seminars" [formGroupName]="'seminarsHeader'">
@@ -831,6 +1195,7 @@
             </thead>
             <tbody>
               @for (s of seminarsTable(); track s.id) {
+                @let src = fullSeminars()[$index];
                 <tr>
                   <td><code class="seminar-table__id">{{ s.id }}</code></td>
                   <td class="seminar-table__title">{{ s.title || '—' }}</td>
@@ -843,10 +1208,28 @@
                     }
                   </td>
                   <td>
-                    <a [routerLink]="['/seminars', s.id, 'edit']" class="btn btn--ghost btn--sm">
-                      <app-icon name="settings" [size]="14" />
-                      Bearbeiten
-                    </a>
+                    <div class="seminar-table__actions-row">
+                      <button
+                        type="button"
+                        class="btn btn--ghost btn--sm"
+                        (click)="duplicateSeminar(src, $event)"
+                        [disabled]="duplicating().has(s.id)"
+                        [attr.aria-label]="'Seminar ' + s.title + ' duplizieren'"
+                        [title]="'Duplizieren: ' + s.title"
+                      >
+                        @if (duplicating().has(s.id)) {
+                          <span class="seminar-table__spinner" aria-hidden="true"></span>
+                          Wird kopiert …
+                        } @else {
+                          <app-icon name="copy" [size]="14" />
+                          Duplizieren
+                        }
+                      </button>
+                      <a [routerLink]="['/seminars', s.id, 'edit']" class="btn btn--ghost btn--sm">
+                        <app-icon name="settings" [size]="14" />
+                        Bearbeiten
+                      </a>
+                    </div>
                   </td>
                 </tr>
               } @empty {
@@ -986,7 +1369,7 @@
         </section>
       }
 
-      <div class="admin-savebar">
+      <div class="admin-savebar" [class.is-hidden]="savebarHidden()">
         <div class="admin-savebar__inner">
           <div class="admin-savebar__status">
             @switch (status()) {
@@ -1002,13 +1385,15 @@
               }
               @case ('error') {
                 <span class="admin-status admin-status--error" [title]="error() ?? ''">
-                  <app-icon name="triangle-alert" [size]="13" /> {{ error() }}
+                  <app-icon name="triangle-alert" [size]="13" /> Fehler beim Speichern
                 </span>
               }
               @default {
-                <span class="admin-status admin-status--idle">
-                  <app-icon name="info-circle" [size]="13" /> Bereit
-                </span>
+                @if (form.dirty) {
+                  <span class="admin-status admin-status--dirty">
+                    <span class="admin-status__dot admin-status__dot--static"></span> Ungespeicherte Änderungen
+                  </span>
+                }
               }
             }
           </div>

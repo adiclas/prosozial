@@ -1,0 +1,100 @@
+<div class="uber-uns-page">
+  <div class="container">
+
+    <!-- Page header -->
+    <header class="page-head">
+      <span class="eyebrow">{{ data().eyebrow }}</span>
+      <h1 class="page-title">{{ data().title }}</h1>
+      <p class="page-lead">{{ data().lead }}</p>
+    </header>
+
+    <!-- Hero card — mirrors the "card.html" widget at the top of /ueber-uns -->
+    <section class="hero" aria-label="Über prosozial">
+      <div class="hero__inner">
+        @if (data().heroImage) {
+          <div class="hero__image">
+            <img [src]="data().heroImage" [alt]="data().heroTitle" />
+            <div class="hero__image-pattern"></div>
+          </div>
+        } @else {
+          <div class="hero__image hero__image--placeholder" aria-hidden="true">
+            <div class="hero__image-pattern"></div>
+            <app-icon name="badge-leaf" [size]="64" />
+          </div>
+        }
+
+        <div class="hero__body">
+          <span class="hero__category">{{ data().heroCategory }}</span>
+          <h2 class="hero__title">{{ data().heroTitle }}</h2>
+          <p class="hero__excerpt">{{ data().heroExcerpt }}</p>
+          <a [routerLink]="data().heroCtaHref" class="btn btn--primary btn--lg">
+            {{ data().heroCtaLabel }}
+            <app-icon name="arrow-right" [size]="16" />
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Story blocks — mirrors the two "bild-neben-text.html" widgets -->
+    @if (stories().length) {
+      <section class="stories" aria-label="Unsere Geschichte">
+        <h2 class="stories__heading">{{ data().storyHeading }}</h2>
+
+        @for (s of stories(); track $index) {
+          <article class="story"
+                   [class.is-reversed]="s.imageSide === 'left'">
+            <div class="story__media">
+              @if (s.image) {
+                <img [src]="s.image" [alt]="s.title" loading="lazy" />
+              } @else {
+                <div class="story__placeholder" aria-hidden="true">
+                  <app-icon [name]="storyIcon(s.category)" [size]="56" />
+                </div>
+              }
+            </div>
+
+            <div class="story__body">
+              <span class="story__category">{{ s.category }}</span>
+              <h3 class="story__title">{{ s.title }}</h3>
+              <p class="story__text">{{ s.text }}</p>
+
+              @if (s.ctaLabel && s.ctaHref) {
+                <a [routerLink]="s.ctaHref" class="story__cta">
+                  {{ s.ctaLabel }}
+                  <app-icon name="arrow-right" [size]="14" />
+                </a>
+              }
+            </div>
+          </article>
+        }
+      </section>
+    }
+
+    <!-- Stat strip -->
+    @if (stats().length) {
+      <section class="stats" aria-label="prosozial in Zahlen">
+        <h2 class="stats__heading">{{ data().statsHeading }}</h2>
+        <ul class="stats__grid">
+          @for (s of stats(); track $index) {
+            <li class="stats__item">
+              <strong class="stats__value">{{ s.value }}</strong>
+              <span class="stats__label">{{ s.label }}</span>
+            </li>
+          }
+        </ul>
+      </section>
+    }
+
+    <!-- Bottom CTA -->
+    <section class="cta">
+      <span class="cta__eyebrow">{{ data().ctaEyebrow }}</span>
+      <h2 class="cta__title">{{ data().ctaTitle }}</h2>
+      <p class="cta__text">{{ data().ctaText }}</p>
+      <a [routerLink]="data().ctaHref" class="btn btn--primary btn--lg">
+        {{ data().ctaLabel }}
+        <app-icon name="arrow-right" [size]="16" />
+      </a>
+    </section>
+
+  </div>
+</div>

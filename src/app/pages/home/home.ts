@@ -18,11 +18,10 @@ export class Home {
   private readonly youtube = inject(YouTubeService);
   private readonly sanitizer = inject(DomSanitizer);
 
-  readonly mobileNavOpen = signal(false);
-
   // Reactive signals from the content service — updates flow through
   // automatically when an admin saves in /admin.
-  readonly header = this.content.header;
+  // Header & footer live in the public-shell wrapper — home only owns
+  // its own section content.
   readonly hero = this.content.hero;
   readonly featuresHeader = this.content.featuresHeader;
   readonly features = this.content.features;
@@ -31,31 +30,34 @@ export class Home {
   readonly showcase = this.content.showcase;
   readonly videosHeader = this.content.videosHeader;
   readonly videos = this.content.videos;
+  readonly seminarsHeader = this.content.seminarsHeader;
+  readonly seminars = this.content.seminars;
   readonly badgesHeader = this.content.badgesHeader;
   readonly badges = this.content.badges;
   readonly guarantee = this.content.guarantee;
   readonly plans = this.content.plans;
   readonly lecturers = this.content.lecturers;
-  /** First 3 lecturers from the global pool, sorted by `order`. */
-  readonly topLecturers = computed(() =>
-    [...this.lecturers()]
-      .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
-      .slice(0, 3),
+
+  /**
+   * Lecturers sorted by `order` (then by name as a tiebreaker). Computed
+   * once and shared between the bento rows so we don't re-sort twice.
+   * Items missing an `order` get pushed to the bottom (default 999).
+   */
+  private readonly sortedLecturers = computed(() =>
+    [...this.lecturers()].sort((a, b) => {
+      const oa = a.order ?? 999;
+      const ob = b.order ?? 999;
+      return oa - ob || a.name.localeCompare(b.name);
+    }),
   );
+
   /** Top row photos for the bento mosaic — up to 10. */
-  readonly topRowLecturers = computed(() =>
-    [...this.lecturers()]
-      .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
-      .slice(0, 10),
-  );
+  readonly topRowLecturers = computed(() => this.sortedLecturers().slice(0, 10));
   /** Bottom row photos — up to 4 (offset, fewer than the top). */
-  readonly bottomRowLecturers = computed(() =>
-    [...this.lecturers()]
-      .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
-      .slice(10, 14),
-  );
+  readonly bottomRowLecturers = computed(() => this.sortedLecturers().slice(10, 14));
+
   readonly ctaStrip = this.content.ctaStrip;
-  readonly footer = this.content.footer;
+  readonly unserBeitrag = this.content.unserBeitrag;
 
   // ----- YouTube playlist state -----
   readonly videos$ = signal<YouTubeVideo[]>([]);
@@ -156,6 +158,28 @@ export class Home {
       .toUpperCase();
   }
 
+  /** Format an index as a zero-padded number ("01", "02" …). */
+  padNum(n: number): string {
+    return n < 10 ? `0${n}` : String(n);
+  }
+
+  /** Return the first scheduled date for a seminar, formatted German-style. */
+  firstDate(s: any): string {
+    const raw = s?.dates?.[0]?.date as string | undefined;
+    if (!raw) return 'Termin folgt';
+    try {
+      const d = new Date(raw);
+      if (Number.isNaN(d.getTime())) return raw;
+      return d.toLocaleDateString('de-DE', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
+    } catch {
+      return raw;
+    }
+  }
+
   /**
    * Convert any YouTube URL (watch?v=…&list=…, /playlist?list=…, or already an
    * /embed/videoseries?list=…) into the canonical embed URL used by the iframe.
@@ -173,13 +197,5 @@ export class Home {
     const list = url.searchParams.get('list');
     if (!list) return null;
     return `https://www.youtube.com/embed/videoseries?list=${encodeURIComponent(list)}`;
-  }
-
-  toggleMobileNav(): void {
-    this.mobileNavOpen.update((v) => !v);
-  }
-
-  closeMobileNav(): void {
-    this.mobileNavOpen.set(false);
   }
 }

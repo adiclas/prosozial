@@ -1,0 +1,79 @@
+<div class="verantwortung-page">
+  <div class="container">
+
+    <!-- Page header -->
+    <header class="page-head">
+      <span class="eyebrow">{{ data().eyebrow }}</span>
+      <h1 class="page-title">{{ data().title }}</h1>
+      <p class="page-lead">{{ data().lead }}</p>
+    </header>
+
+    <!-- Featured article (hero) — mirrors <blog-vorschau> on prosozial.de/nachhaltigkeit -->
+    @if (feature(); as f) {
+      <section class="feature">
+        <a [routerLink]="f.href" class="feature__link" [attr.aria-label]="'Artikel lesen: ' + f.title">
+
+          @if (f.image) {
+            <div class="feature__art" aria-hidden="true">
+              <img [src]="f.image" [alt]="''" />
+              <div class="feature__art-pattern"></div>
+            </div>
+          } @else {
+            <div class="feature__art feature__art--placeholder" aria-hidden="true">
+              <div class="feature__art-pattern"></div>
+              <app-icon name="sparkle" [size]="48" />
+            </div>
+          }
+
+          <div class="feature__overlay">
+            <span class="feature__category">{{ f.category }}</span>
+            <h2 class="feature__title">{{ f.title }}</h2>
+            <p class="feature__excerpt">{{ f.excerpt }}</p>
+            @if (f.meta) {
+              <small class="feature__meta">{{ f.meta }}</small>
+            }
+            <span class="feature__cta">
+              Artikel lesen
+              <app-icon name="arrow-right" [size]="14" />
+            </span>
+          </div>
+        </a>
+      </section>
+    }
+
+    <!-- Related articles — mirrors <blog-liste cols-4> on prosozial.de/nachhaltigkeit -->
+    <section class="grid-section">
+      <h2 class="grid-section__title">{{ data().gridTitle }}</h2>
+
+      <ul class="grid">
+        @for (a of articles(); track a.title) {
+          <li class="card">
+            <a [routerLink]="a.href" class="card__link" [attr.aria-label]="'Artikel lesen: ' + a.title">
+
+              @if (a.image) {
+                <div class="card__image">
+                  <img [src]="a.image" [alt]="''" />
+                </div>
+              } @else {
+                <div class="card__image card__image--placeholder" aria-hidden="true">
+                  <app-icon [name]="categoryIcon(a.category)" [size]="32" />
+                </div>
+              }
+
+              <div class="card__body">
+                <span class="card__category">{{ a.category }}</span>
+                <h3 class="card__title">{{ a.title }}</h3>
+                <p class="card__excerpt">{{ a.excerpt }}</p>
+                <span class="card__footer">
+                  @if (a.meta) { <small>{{ a.meta }}</small> }
+                  <app-icon name="arrow-right" [size]="14" class="card__arrow" aria-hidden="true" />
+                </span>
+              </div>
+            </a>
+          </li>
+        }
+      </ul>
+    </section>
+
+  </div>
+</div>

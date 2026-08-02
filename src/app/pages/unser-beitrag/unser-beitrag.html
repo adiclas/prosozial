@@ -1,0 +1,49 @@
+<div class="unser-beitrag-page">
+  <div class="container">
+
+    <!-- Page header -->
+    <header class="page-head">
+      <span class="eyebrow">{{ data().eyebrow }}</span>
+      <h1 class="page-title">{{ data().title }}</h1>
+      <p class="page-lead">{{ data().lead }}</p>
+    </header>
+
+    <!-- Intro section -->
+    <section class="intro">
+      <p class="intro__text">{{ data().intro }}</p>
+    </section>
+
+    <!-- Contribution cards -->
+    <section class="grid" aria-label="Unsere Beiträge">
+      @for (item of items(); track item.title) {
+        <article class="card">
+          <header class="card__head">
+            <span class="card__icon" aria-hidden="true">
+              <app-icon [name]="item.icon" [size]="24" />
+            </span>
+            @if (item.stat) {
+              <div class="card__stat">
+                <strong>{{ item.stat }}</strong>
+                @if (item.statLabel) { <small>{{ item.statLabel }}</small> }
+              </div>
+            }
+          </header>
+          <h2 class="card__title">{{ item.title }}</h2>
+          <p class="card__text">{{ item.text }}</p>
+        </article>
+      }
+    </section>
+
+    <!-- Closing CTA -->
+    <section class="cta">
+      <span class="cta__eyebrow">{{ data().ctaEyebrow }}</span>
+      <h2 class="cta__title">{{ data().ctaTitle }}</h2>
+      <p class="cta__text">{{ data().ctaText }}</p>
+      <a [routerLink]="data().ctaHref" class="btn btn--primary btn--lg">
+        {{ data().ctaLabel }}
+        <app-icon name="arrow-right" [size]="16" />
+      </a>
+    </section>
+
+  </div>
+</div>

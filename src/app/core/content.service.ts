@@ -56,6 +56,9 @@ export class ContentService {
   readonly teamText = computed(() => this._content().teamText);
   readonly team = computed(() => this._content().team);
   readonly ctaStrip = computed(() => this._content().ctaStrip);
+  readonly unserBeitrag = computed(() => this._content().unserBeitrag);
+  readonly responsibility = computed(() => this._content().responsibility);
+  readonly aboutUs = computed(() => this._content().aboutUs);
   readonly footer = computed(() => this._content().footer);
 
   constructor() {
@@ -113,6 +116,13 @@ export class ContentService {
     this.save({ ...this._content(), [key]: value });
   }
 
+  /** Acknowledge the last save error without retrying. Used by the admin
+   *  panel's dismissable error banner. */
+  clearError(): void {
+    this._error.set(null);
+    if (this._status() === 'error') this._status.set('idle');
+  }
+
   private merge(remote: unknown): SiteContent {
     const base = structuredClone(DEFAULT_CONTENT);
     if (!remote || typeof remote !== 'object') return base;
@@ -146,6 +156,31 @@ export class ContentService {
       ...(r.guarantee ?? {}),
       items: Array.isArray(r.guarantee?.items) ? r.guarantee!.items! : base.guarantee.items,
     } as typeof base.guarantee;
+    merged.unserBeitrag = {
+      ...base.unserBeitrag,
+      ...(r.unserBeitrag ?? {}),
+      items: Array.isArray((r.unserBeitrag as any)?.items)
+        ? (r.unserBeitrag as any).items
+        : base.unserBeitrag.items,
+    } as typeof base.unserBeitrag;
+    merged.responsibility = {
+      ...base.responsibility,
+      ...(r.responsibility ?? {}),
+      articles: Array.isArray((r.responsibility as any)?.articles)
+        ? (r.responsibility as any).articles
+        : base.responsibility.articles,
+      feature: { ...base.responsibility.feature, ...((r.responsibility as any)?.feature ?? {}) },
+    } as typeof base.responsibility;
+    merged.aboutUs = {
+      ...base.aboutUs,
+      ...(r.aboutUs ?? {}),
+      stories: Array.isArray((r.aboutUs as any)?.stories)
+        ? (r.aboutUs as any).stories
+        : base.aboutUs.stories,
+      stats: Array.isArray((r.aboutUs as any)?.stats)
+        ? (r.aboutUs as any).stats
+        : base.aboutUs.stats,
+    } as typeof base.aboutUs;
     merged.videos = {
       ...base.videos,
       ...(r.videos ?? {}),

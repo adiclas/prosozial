@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ContentService } from '../../core/content.service';
-import { Lecturer, Seminar, SeminarStatus } from '../../core/content.types';
+import { Lecturer, Seminar, SeminarDate, SeminarStatus } from '../../core/content.types';
 import { Icon } from '../../shared/icon';
 
 const STATUS_LABELS: Record<SeminarStatus, string> = {
@@ -11,6 +11,23 @@ const STATUS_LABELS: Record<SeminarStatus, string> = {
   'fully-booked': 'Ausgebucht',
   cancelled: 'Abgesagt',
 };
+
+/** Pretty-print a cost field that may be a number or already-formatted string. */
+function formatCost(raw: string | number): string {
+  if (typeof raw === 'number') {
+    return raw.toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' €';
+  }
+  const s = String(raw).trim();
+  if (!s) return '';
+  // If it already contains a currency symbol or "incl"/"excl", trust the CMS string.
+  if (/[€$£]|incl|excl|netto|brutto/i.test(s)) return s;
+  // Otherwise treat as a bare number and format it.
+  const n = Number(s);
+  if (Number.isFinite(n)) {
+    return n.toLocaleString('de-DE', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' €';
+  }
+  return s;
+}
 
 @Component({
   selector: 'app-seminar-detail',
@@ -44,12 +61,40 @@ export class SeminarDetail {
       .filter((l): l is Lecturer => !!l);
   });
 
+  /** List of dates (always an array even if seminar has none). */
+  readonly sDates = computed<SeminarDate[]>(() => this.seminar()?.dates ?? []);
+
+  /** Total number of sessions across all dates. */
+  readonly totalSessions = computed<number>(() =>
+    this.sDates().reduce((sum, d) => sum + (d.sessions?.length ?? 0), 0),
+  );
+
+  /** Default contact email used by the "Anmeldung per E-Mail" CTA. */
+  readonly contactEmail = computed<string>(() => 'service@prosozial.de');
+
   statusLabel(s: SeminarStatus): string {
     return this.statusLabels[s] ?? s;
+  }
+
+  formatCost(raw: string | number): string {
+    return formatCost(raw);
   }
 
   goBack(event: Event): void {
     event.preventDefault();
     this.router.navigate(['/seminars']);
+  }
+
+  /**
+   * Placeholder for a future waitlist API. For now, opens the user's mail
+   * client with a pre-filled subject so they can request to be notified when
+   * a seat opens up.
+   */
+  joinWaitlist(s: Seminar): void {
+    const subject = encodeURIComponent(`Warteliste: ${s.title}`);
+    const body = encodeURIComponent(
+      `Hallo,\n\nbitte setzen Sie mich auf die Warteliste für "${s.title}".\n\nVielen Dank!`,
+    );
+    window.location.href = `mailto:${this.contactEmail()}?subject=${subject}&body=${body}`;
   }
 }

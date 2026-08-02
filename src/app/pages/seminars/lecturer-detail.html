@@ -1,0 +1,173 @@
+<div class="lecturer-detail-page">
+
+  <!-- ====== Header ====== -->
+  <header class="page-header">
+    <div class="container page-header__inner">
+      <button type="button" class="page-header__back" (click)="goBack()">
+        <app-icon name="arrow-left" [size]="14" /> Zurück
+      </button>
+      <span class="page-header__crumb">
+        Dozenten & Berater · Detailansicht
+      </span>
+    </div>
+  </header>
+
+  @if (lecturer(); as l) {
+    <!-- ====== Hero ====== -->
+    <section class="hero">
+      <div class="container hero__inner">
+        <div class="hero__avatar-wrap">
+          <div class="hero__avatar" [style.background]="l.avatarColor || 'var(--color-primary)'">
+            @if (l.avatar) {
+              <img [src]="l.avatar" [alt]="l.name" />
+            } @else {
+              <span>{{ initials(l) }}</span>
+            }
+          </div>
+        </div>
+
+        <div class="hero__body">
+          <span class="hero__eyebrow">DOZENT</span>
+          <h1 class="hero__title">{{ l.name }}</h1>
+          <p class="hero__role">{{ l.role || 'Rolle nicht hinterlegt' }}</p>
+
+          @if (l.expertise?.length) {
+            <ul class="hero__expertise" aria-label="Schwerpunkte">
+              @for (tag of l.expertise; track tag) {
+                <li>{{ tag }}</li>
+              }
+            </ul>
+          }
+
+          <div class="hero__actions">
+            <a [routerLink]="['/seminars/lecturers', l.id, 'edit']" class="btn btn--primary">
+              <app-icon name="settings" [size]="14" />
+              Bearbeiten
+            </a>
+            <a routerLink="/seminars/lecturers" class="btn btn--ghost">
+              <app-icon name="arrow-left" [size]="14" />
+              Alle Dozenten
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== Content ====== -->
+    <div class="container layout">
+
+      <!-- Left column: bio + contact -->
+      <main class="content">
+        @if (l.bio) {
+          <section class="card">
+            <header class="card__head">
+              <div>
+                <small class="card__eyebrow">Profil</small>
+                <h2 class="card__title">Über {{ l.name }}</h2>
+              </div>
+            </header>
+            <p class="bio">{{ l.bio }}</p>
+          </section>
+        } @else {
+          <section class="card card--empty">
+            <header class="card__head">
+              <div>
+                <small class="card__eyebrow">Profil</small>
+                <h2 class="card__title">Über {{ l.name }}</h2>
+              </div>
+            </header>
+            <p class="bio bio--empty">Für diese Person ist noch keine Biografie hinterlegt.</p>
+          </section>
+        }
+
+        <!-- Seminare die diesen Dozenten verwenden -->
+        <section class="card">
+          <header class="card__head">
+            <div>
+              <small class="card__eyebrow">Aktiv</small>
+              <h2 class="card__title">
+                Verwendet in {{ seminarsUsing().length }}
+                Seminar{{ seminarsUsing().length === 1 ? '' : 'en' }}
+              </h2>
+            </div>
+          </header>
+
+          @if (seminarsUsing().length === 0) {
+            <p class="bio bio--empty">Dieser Dozent ist aktuell in keinem Seminar eingetragen.</p>
+          } @else {
+            <ul class="seminar-list">
+              @for (s of seminarsUsing(); track s.id) {
+                <li>
+                  <a [routerLink]="['/seminars', s.id]" class="seminar-list__link">
+                    <span class="seminar-list__title">{{ s.title }}</span>
+                    <span class="seminar-list__meta">
+                      <span class="seminar-list__status seminar-list__status--{{ s.status }}">
+                        {{ statusLabel(s.status) }}
+                      </span>
+                      @if (s.provider) { <small>{{ s.provider }}</small> }
+                      @if (s.nextDate) { <small class="seminar-list__date">· {{ s.nextDate }}</small> }
+                    </span>
+                    <app-icon name="arrow-right" [size]="14" class="seminar-list__chevron" aria-hidden="true" />
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      </main>
+
+      <!-- Right sidebar: contact + meta -->
+      <aside class="sidebar">
+        <section class="card card--side">
+          <header class="card__head">
+            <div><small class="card__eyebrow">Kontakt</small><h2 class="card__title">Erreichbarkeit</h2></div>
+          </header>
+
+          @if (l.email || l.phone) {
+            <dl class="contact">
+              @if (l.email) {
+                <div>
+                  <dt><app-icon name="mail" [size]="14" /> E-Mail</dt>
+                  <dd><a [href]="'mailto:' + l.email">{{ l.email }}</a></dd>
+                </div>
+              }
+              @if (l.phone) {
+                <div>
+                  <dt><app-icon name="phone" [size]="14" /> Telefon</dt>
+                  <dd><a [href]="'tel:' + l.phone">{{ l.phone }}</a></dd>
+                </div>
+              }
+            </dl>
+          } @else {
+            <p class="contact__empty">Keine Kontaktdaten hinterlegt.</p>
+          }
+        </section>
+
+        <section class="card card--side">
+          <header class="card__head">
+            <div><small class="card__eyebrow">Sortierung</small><h2 class="card__title">Anzeige</h2></div>
+          </header>
+          <dl class="contact">
+            <div>
+              <dt>Reihenfolge</dt>
+              <dd>{{ l.order ?? 'Auto' }}</dd>
+            </div>
+            <div>
+              <dt>ID</dt>
+              <dd><code>{{ l.id }}</code></dd>
+            </div>
+          </dl>
+        </section>
+      </aside>
+    </div>
+
+  } @else {
+    <div class="container not-found">
+      <h1>Dozent nicht gefunden</h1>
+      <p>Die angeforderte Person existiert nicht oder wurde entfernt.</p>
+      <a routerLink="/seminars/lecturers" class="btn btn--primary">
+        <app-icon name="arrow-left" [size]="14" /> Zurück zur Übersicht
+      </a>
+    </div>
+  }
+</div>

@@ -44,7 +44,7 @@
           <span class="eyebrow">{{ isNew() ? 'NEU ANLEGEN' : 'BEARBEITEN' }}</span>
           <h1 class="page-title">{{ pageTitle() }}</h1>
           @if (seminar(); as s) {
-            <a [routerLink]="['/seminars', s.id]" class="page-head__view" target="_blank" rel="noopener">
+            <a [routerLink]="['/seminars', s.id]" class="page-head__view">
               Öffentliche Vorschau öffnen
               <app-icon name="arrow-right" [size]="12" />
             </a>
@@ -226,7 +226,7 @@
               <h2 class="card__title">Vortragende</h2>
               <p class="card__sub">
                 Personen aus dem globalen Pool wählen.
-                <a routerLink="/seminars/lecturers" target="_blank">Pool verwalten →</a>
+                <a routerLink="/seminars/lecturers">Pool verwalten →</a>
               </p>
             </div>
           </header>

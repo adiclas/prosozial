@@ -1,0 +1,314 @@
+:host { display: block; background: var(--color-bg); min-height: 100dvh; }
+
+.unser-beitrag-page {
+  padding: clamp(2.5rem, 5vw, 4rem) 0 clamp(3rem, 6vw, 5rem);
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-inline: var(--container-px);
+}
+
+/* ============================================================
+   Page header
+   ============================================================ */
+.page-head {
+  text-align: center;
+  max-width: 760px;
+  margin: 0 auto var(--space-10);
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  background: var(--color-brand-50);
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-4);
+}
+
+.page-title {
+  margin: 0 0 var(--space-4);
+  font-size: clamp(1.75rem, 4vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--color-ink-900);
+}
+
+.page-lead {
+  margin: 0;
+  font-size: var(--fs-lg);
+  color: var(--color-ink-600);
+  line-height: 1.55;
+}
+
+/* ============================================================
+   Intro
+   ============================================================ */
+.intro {
+  max-width: 820px;
+  margin: 0 auto var(--space-12);
+  padding: var(--space-7);
+  background: linear-gradient(135deg, #fff 0%, var(--color-brand-50) 100%);
+  border: 1px solid var(--color-brand-200);
+  border-radius: var(--radius-lg);
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 24px;
+    bottom: 0;
+    width: 4px;
+    background: var(--color-primary);
+    border-radius: 0 4px 4px 0;
+  }
+}
+
+.intro__text {
+  margin: 0;
+  padding-left: var(--space-5);
+  font-size: var(--fs-md);
+  line-height: 1.75;
+  color: var(--color-ink-800);
+  white-space: pre-line;
+}
+
+/* ============================================================
+   Contribution grid
+   ============================================================ */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-5);
+  margin-bottom: var(--space-12);
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 280ms ease,
+              border-color 280ms ease;
+  position: relative;
+  overflow: hidden;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+    border-color: var(--color-brand-300);
+  }
+
+  /* Subtle green corner accent that fades in on hover */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--color-primary);
+    transform: scaleY(0);
+    transform-origin: top;
+    transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  &:hover::before { transform: scaleY(1); }
+}
+
+.card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.card__icon {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  background: var(--color-brand-50);
+  color: var(--color-primary);
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.card__stat {
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  strong {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--color-primary);
+    letter-spacing: -0.02em;
+  }
+
+  small {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-ink-500);
+  }
+}
+
+.card__title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--color-ink-900);
+  letter-spacing: -0.005em;
+}
+
+.card__text {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--color-ink-600);
+  line-height: 1.65;
+}
+
+/* ============================================================
+   Closing CTA
+   ============================================================ */
+.cta {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: var(--space-12) var(--space-8);
+  background: linear-gradient(135deg, var(--color-ink-900) 0%, #0a1d12 100%);
+  color: #fff;
+  border-radius: var(--radius-lg);
+  position: relative;
+  overflow: hidden;
+
+  /* Subtle radial highlight */
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 60%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(0, 127, 65, 0.25), transparent 60%);
+    pointer-events: none;
+  }
+}
+
+.cta__eyebrow {
+  position: relative;
+  display: inline-block;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-brand-300);
+  background: rgba(255, 255, 255, 0.08);
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  margin-bottom: var(--space-4);
+}
+
+.cta__title {
+  position: relative;
+  margin: 0 0 var(--space-3);
+  font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: #fff;
+}
+
+.cta__text {
+  position: relative;
+  margin: 0 0 var(--space-7);
+  font-size: var(--fs-md);
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.6;
+  max-width: 540px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cta .btn--primary {
+  position: relative;
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0.55rem 1rem;
+  border-radius: var(--radius-full);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  text-decoration: none;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease, transform 160ms ease;
+  font-family: inherit;
+}
+
+.btn--primary {
+  background: var(--color-primary);
+  color: #fff;
+
+  &:hover {
+    background: var(--color-primary-hover);
+    transform: translateY(-1px);
+  }
+}
+
+.btn--lg {
+  padding: 0.85rem 1.5rem;
+  font-size: var(--fs-md);
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+@media (max-width: 1024px) {
+  .grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .grid { grid-template-columns: 1fr; gap: var(--space-4); }
+
+  .card { padding: var(--space-5); }
+
+  .cta { padding: var(--space-8) var(--space-5); }
+  .cta__title { font-size: 1.5rem; }
+}
+
+/* ============================================================
+   Reduced motion
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .card::before,
+  .btn {
+    transition: none !important;
+  }
+  .card:hover { transform: none; }
+  .btn:hover { transform: none; }
+}

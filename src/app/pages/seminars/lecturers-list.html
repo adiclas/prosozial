@@ -27,7 +27,8 @@
       <ul class="lecturer-grid" role="list">
         @for (l of lecturers(); track l.id) {
           <li class="lecturer-card" [style.--avatar-color]="l.avatarColor || 'var(--color-primary)'">
-            <a [routerLink]="['/seminars/lecturers', l.id, 'edit']" class="lecturer-card__link">
+            <a [routerLink]="['/seminars/lecturers', l.id]" class="lecturer-card__link"
+               [attr.aria-label]="'Profil von ' + l.name + ' ansehen'">
               <div class="lecturer-card__avatar" aria-hidden="true">
                 @if (l.avatar) {
                   <img [src]="l.avatar" [alt]="l.name" />
@@ -44,27 +45,36 @@
                   }
                 </ul>
               }
-              <div class="lecturer-card__actions">
-                <span class="lecturer-card__cta">
-                  <app-icon name="settings" [size]="12" /> Bearbeiten
-                </span>
-                <button
-                  type="button"
-                  class="lecturer-card__duplicate"
-                  (click)="duplicateLecturer(l, $event)"
-                  [disabled]="duplicating().has(l.id)"
-                  [attr.aria-label]="'Dozent ' + l.name + ' duplizieren'"
-                  [title]="'Duplizieren: ' + l.name"
-                >
-                  @if (duplicating().has(l.id)) {
-                    <span class="lecturer-card__duplicate-spinner" aria-hidden="true"></span>
-                    Wird kopiert …
-                  } @else {
-                    <app-icon name="copy" [size]="13" /> Duplizieren
-                  }
-                </button>
-              </div>
+              <span class="lecturer-card__cta" aria-hidden="true">
+                <app-icon name="user" [size]="12" /> Profil ansehen
+              </span>
             </a>
+
+            <!-- Action buttons live OUTSIDE the anchor so clicks never trigger
+                 accidental navigation. The card-wide link still makes the
+                 whole tile clickable; the buttons override locally. -->
+            <div class="lecturer-card__actions">
+              <a [routerLink]="['/seminars/lecturers', l.id, 'edit']"
+                 class="lecturer-card__edit"
+                 [attr.aria-label]="'Dozent ' + l.name + ' bearbeiten'">
+                <app-icon name="settings" [size]="13" /> Bearbeiten
+              </a>
+              <button
+                type="button"
+                class="lecturer-card__duplicate"
+                (click)="duplicateLecturer(l, $event)"
+                [disabled]="duplicating().has(l.id)"
+                [attr.aria-label]="'Dozent ' + l.name + ' duplizieren'"
+                [title]="'Duplizieren: ' + l.name"
+              >
+                @if (duplicating().has(l.id)) {
+                  <span class="lecturer-card__duplicate-spinner" aria-hidden="true"></span>
+                  Wird kopiert …
+                } @else {
+                  <app-icon name="copy" [size]="13" /> Duplizieren
+                }
+              </button>
+            </div>
           </li>
         }
       </ul>
