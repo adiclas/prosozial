@@ -231,7 +231,15 @@ export class Admin {
         ctaHref: [this.current().header.ctaHref, Validators.required],
         navLinks: this.fb.array(
           this.current().header.navLinks.map((l) =>
-            this.fb.group({ label: [l.label, Validators.required], href: [l.href, Validators.required] }),
+            this.fb.group({
+              label: [l.label, Validators.required],
+              href: [l.href ?? ''],
+              children: this.fb.array(
+                (l.children ?? []).map((c) =>
+                  this.fb.group({ label: [c.label, Validators.required], href: [c.href ?? ''] }),
+                ),
+              ),
+            }),
           ),
         ),
       }),
@@ -562,7 +570,17 @@ export class Admin {
     initials: [''],
     avatarColor: ['#4daf6a'],
   });
-  readonly newNavLink = (): FormGroup => this.fb.group({ label: ['', Validators.required], href: ['#', Validators.required] });
+  readonly newNavLink = (): FormGroup => this.fb.group({
+    label: ['', Validators.required],
+    href: ['#'],
+    // Children array is always present so toggling between leaf ↔ parent
+    // doesn't require structural changes to the form group.
+    children: this.fb.array([]),
+  });
+  readonly newNavSubLink = (): FormGroup => this.fb.group({
+    label: ['', Validators.required],
+    href: ['#'],
+  });
   readonly newTrustItem = (): FormGroup => this.fb.group({ icon: ['shield-check'], label: ['', Validators.required] });
   readonly newAvatar = (): FormGroup => this.fb.group({ initials: ['A'], color: ['#4daf6a'] });
   readonly newColumn = (): FormGroup => this.fb.group({ title: ['', Validators.required], links: this.fb.array([]) });
@@ -687,6 +705,55 @@ export class Admin {
     const input = event.target as HTMLInputElement;
     const row = this.headerNavArr.at(index);
     row.get('href')?.setValue(input.value);
+  }
+
+  // ---------- Sub-link helpers (children of a nav parent) ----------
+
+  /** Access the children FormArray of the nav link at `index`. */
+  navChildrenAt(index: number): FormArray {
+    return this.headerNavArr.at(index).get('children') as FormArray;
+  }
+
+  /**
+   * Toggle a nav entry between "leaf" (with an href) and "parent"
+   * (with children). The children array is always present in the form
+   * group — we just clear it to revert to leaf mode, or seed a default
+   * child to enter parent mode.
+   */
+  toggleNavLinkChildren(index: number): void {
+    const row = this.headerNavArr.at(index);
+    const children = this.navChildrenAt(index);
+    if (children.length > 0) {
+      // Collapsing to leaf — wipe the children so the render flips back.
+      while (children.length) children.removeAt(0);
+    } else {
+      // Expanding to parent — seed with one empty child + clear href so
+      // the parent doesn't link anywhere (the children are the targets).
+      children.push(this.newNavSubLink());
+      row.get('href')?.setValue('');
+    }
+  }
+
+  /**
+   * Same URL-selection logic as `onNavLinkHrefChange`, but for a child
+   * row inside a parent's children array.
+   */
+  onNavChildHrefChange(parentIndex: number, childIndex: number, event: Event): void {
+    const select = event.target as HTMLSelectElement;
+    const value = select.value;
+    const child = this.navChildrenAt(parentIndex).at(childIndex);
+    if (value === '__custom__') {
+      const current = child.get('href')?.value ?? '';
+      if (this.matchesKnownTarget(current)) child.get('href')?.setValue('');
+    } else {
+      child.get('href')?.setValue(value);
+    }
+  }
+
+  /** Sync a child row's custom URL input back to `href`. */
+  setCustomChildHref(parentIndex: number, childIndex: number, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.navChildrenAt(parentIndex).at(childIndex).get('href')?.setValue(input.value);
   }
 
   /**

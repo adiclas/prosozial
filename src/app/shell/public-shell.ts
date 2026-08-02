@@ -31,12 +31,35 @@ export class PublicShell {
 
   readonly mobileNavOpen = signal(false);
 
+  /**
+   * Index of the currently open desktop dropdown, or `null` when none.
+   * Only one dropdown can be open at a time. Hover + keyboard focus both
+   * open it; clicking the parent button toggles it (for touch devices).
+   */
+  readonly dropdownOpen = signal<number | null>(null);
+
   toggleMobileNav(): void {
     this.mobileNavOpen.update((v) => !v);
   }
 
   closeMobileNav(): void {
     this.mobileNavOpen.set(false);
+  }
+
+  openDropdown(i: number): void {
+    this.dropdownOpen.set(i);
+  }
+
+  closeDropdown(i: number): void {
+    if (this.dropdownOpen() === i) this.dropdownOpen.set(null);
+  }
+
+  toggleDropdown(i: number): void {
+    this.dropdownOpen.update((v) => (v === i ? null : i));
+  }
+
+  closeAllDropdowns(): void {
+    this.dropdownOpen.set(null);
   }
 
   goDashboard(): void {

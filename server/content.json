@@ -6,11 +6,28 @@
     "navLinks": [
       {
         "label": "Seminars",
-        "href": "/seminars"
+        "href": "",
+        "children": [
+          {
+            "label": "Lecturers",
+            "href": "/seminars/lecturers"
+          }
+        ]
+      },
+      {
+        "label": "Verantwortung",
+        "href": "",
+        "children": [
+          {
+            "label": "Our Contribution",
+            "href": "/unserbeitrag"
+          }
+        ]
       },
       {
         "label": "Uber Uns",
-        "href": "/ueber-uns"
+        "href": "/ueber-uns",
+        "children": []
       }
     ]
   },

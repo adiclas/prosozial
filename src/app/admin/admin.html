@@ -161,55 +161,133 @@
           </div>
 
           <h3>Navigationslinks</h3>
+          <p class="admin-hint">
+            <strong>Tipp:</strong> Ziehen Sie Einträge per Drag &amp; Drop in die
+            gewünschte Reihenfolge. Mit „Untermenü” können Sie ein Dropdown
+            mit Kind-Links anlegen — der übergeordnete Eintrag braucht dann kein
+            eigenes Ziel.
+          </p>
+
           <div formArrayName="navLinks">
-            <div class="array-stack" cdkDropList (cdkDropListDropped)="drop($event, headerNavArr)">
+            <ul class="nav-tree" cdkDropList (cdkDropListDropped)="drop($event, headerNavArr)">
               @for (l of headerNavArr.controls; track l; let i = $index) {
-                <div class="array-row" [formGroupName]="i" cdkDrag>
-                  <button type="button" cdkDragHandle class="drag-handle" aria-label="Reihenfolge ändern">
-                    <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
-                      <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
-                      <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
-                    </svg>
-                  </button>
-                  <label>
-                    <span>Label</span>
-                    <input type="text" formControlName="label" />
-                  </label>
-                  <div class="nav-link-target">
-                    <label>
-                      <span>Ziel</span>
-                      <select (change)="onNavLinkHrefChange(i, $event)">
-                        @for (opt of navTargetOptions(); track opt.href) {
-                          <option [value]="opt.href" [selected]="l.get('href')?.value === opt.href">
-                            {{ opt.label }}
-                          </option>
+                @let hasChildren = l.get('children')?.value?.length > 0;
+                <li class="nav-tree__item" [formGroupName]="i" cdkDrag>
+                  <div class="nav-tree__row" [class.is-parent]="hasChildren">
+                    <button type="button" cdkDragHandle class="drag-handle drag-handle--lg" aria-label="Reihenfolge ändern">
+                      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+                        <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                        <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                      </svg>
+                    </button>
+
+                    <div class="nav-tree__main">
+                      <div class="nav-tree__head">
+                        <input type="text" formControlName="label"
+                               class="nav-tree__label-input"
+                               placeholder="Label, z.B. Seminare" />
+                        @if (hasChildren) {
+                          <span class="nav-tree__badge">
+                            <app-icon name="menu" [size]="11" /> {{ l.get('children')?.value?.length }}
+                          </span>
                         }
-                        <option value="__custom__" [selected]="!matchesKnownTarget(l.get('href')?.value)">
-                          [Eigene URL …]
-                        </option>
-                      </select>
-                    </label>
-                    @if (!matchesKnownTarget(l.get('href')?.value)) {
-                      <label>
-                        <span>Eigene URL</span>
-                        <input type="text" [value]="l.get('href')?.value ?? ''"
-                               (input)="setCustomHref(i, $event)"
-                               placeholder="/pfad oder https://…" />
-                      </label>
-                    } @else {
-                      <small class="field-hint nav-link-preview">
-                        → {{ l.get('href')?.value }}
-                      </small>
-                    }
+                      </div>
+
+                      <div class="nav-tree__row-controls">
+                        <button type="button" class="nav-tree__action"
+                                (click)="toggleNavLinkChildren(i)"
+                                [attr.aria-pressed]="hasChildren"
+                                [title]="hasChildren ? 'Untermenü aufheben' : 'In Untermenü umwandeln'">
+                          <app-icon [name]="hasChildren ? 'arrow-left' : 'menu'" [size]="12" />
+                          {{ hasChildren ? 'Untermenü aufheben' : 'Untermenü' }}
+                        </button>
+                        <button type="button" class="nav-tree__action nav-tree__action--danger"
+                                (click)="removeAt(headerNavArr, i)" aria-label="Entfernen">
+                          <app-icon name="trash" [size]="12" /> Entfernen
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(headerNavArr, i)" aria-label="Entfernen">
-                  <app-icon name="trash" [size]="14" />
-                  </button>
-                </div>
+
+                  <!-- Sub-link form array — appears when "Untermenü" is on -->
+                  @if (hasChildren) {
+                    <ul class="nav-tree__children" formArrayName="children"
+                        cdkDropList (cdkDropListDropped)="drop($event, navChildrenAt(i))">
+                      @for (child of navChildrenAt(i).controls; track child; let ci = $index) {
+                        <li class="nav-tree__child" [formGroupName]="ci" cdkDrag>
+                          <button type="button" cdkDragHandle class="drag-handle" aria-label="Reihenfolge ändern">
+                            <svg viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                              <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                              <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                            </svg>
+                          </button>
+                          <input type="text" formControlName="label"
+                                 class="nav-tree__label-input nav-tree__label-input--small"
+                                 placeholder="Label des Unterpunkts" />
+                          <div class="nav-link-target nav-link-target--inline">
+                            <select (change)="onNavChildHrefChange(i, ci, $event)">
+                              @for (opt of navTargetOptions(); track opt.href) {
+                                <option [value]="opt.href" [selected]="child.get('href')?.value === opt.href">
+                                  {{ opt.label }}
+                                </option>
+                              }
+                              <option value="__custom__" [selected]="!matchesKnownTarget(child.get('href')?.value)">
+                                [Eigene URL …]
+                              </option>
+                            </select>
+                            @if (!matchesKnownTarget(child.get('href')?.value)) {
+                              <input type="text"
+                                     [value]="child.get('href')?.value ?? ''"
+                                     (input)="setCustomChildHref(i, ci, $event)"
+                                     placeholder="/pfad oder https://…" />
+                            }
+                          </div>
+                          <button type="button" class="nav-tree__action nav-tree__action--danger"
+                                  (click)="removeAt(navChildrenAt(i), ci)" aria-label="Unterpunkt entfernen">
+                            <app-icon name="trash" [size]="12" />
+                          </button>
+                        </li>
+                      }
+                    </ul>
+
+                    <div class="nav-tree__child-add">
+                      <button type="button" class="btn btn--ghost btn--sm"
+                              (click)="addTo(navChildrenAt(i), newNavSubLink)">
+                        <app-icon name="check" [size]="12" /> Unterpunkt hinzufügen
+                      </button>
+                    </div>
+                  } @else {
+                    <!-- Leaf link: show Ziel picker (the original behavior) -->
+                    <div class="nav-tree__leaf-target">
+                      <div class="nav-link-target">
+                        <select (change)="onNavLinkHrefChange(i, $event)">
+                          @for (opt of navTargetOptions(); track opt.href) {
+                            <option [value]="opt.href" [selected]="l.get('href')?.value === opt.href">
+                              {{ opt.label }}
+                            </option>
+                          }
+                          <option value="__custom__" [selected]="!matchesKnownTarget(l.get('href')?.value)">
+                            [Eigene URL …]
+                          </option>
+                        </select>
+                        @if (!matchesKnownTarget(l.get('href')?.value)) {
+                          <input type="text" [value]="l.get('href')?.value ?? ''"
+                                 (input)="setCustomHref(i, $event)"
+                                 placeholder="/pfad oder https://…" />
+                        }
+                      </div>
+                      <small class="field-hint nav-link-preview">
+                        @if (l.get('href')?.value) { → {{ l.get('href')?.value }} }
+                        @else { Kein Ziel — Eintrag wird als reines Label angezeigt }
+                      </small>
+                    </div>
+                  }
+                </li>
               }
-            </div>
+            </ul>
+
             <button type="button" class="btn btn--ghost btn--sm" (click)="addTo(headerNavArr, newNavLink)">
-              + Navigationspunkt
+              <app-icon name="check" [size]="12" /> Navigationspunkt
             </button>
           </div>
         </section>

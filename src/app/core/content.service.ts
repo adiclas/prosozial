@@ -156,6 +156,32 @@ export class ContentService {
       ...(r.guarantee ?? {}),
       items: Array.isArray(r.guarantee?.items) ? r.guarantee!.items! : base.guarantee.items,
     } as typeof base.guarantee;
+    merged.videos = {
+      ...base.videos,
+      ...(r.videos ?? {}),
+      // videoIds MUST be string[]. If the server has a stale string
+      // (e.g. from an older save that didn't go through the transform),
+      // fall back to defaults so the home page list still works.
+      videoIds: Array.isArray((r.videos as any)?.videoIds)
+        ? (r.videos as any).videoIds
+        : base.videos.videoIds,
+      playlistUrl:
+        typeof (r.videos as any)?.playlistUrl === 'string' && (r.videos as any).playlistUrl
+          ? (r.videos as any).playlistUrl
+          : base.videos.playlistUrl,
+    } as typeof base.videos;
+    merged.seminars = {
+      ...base.seminars,
+      ...(r.seminars ?? {}),
+      header: { ...base.seminars.header, ...((r.seminars as any)?.header ?? {}) },
+      // The seminars array is the most critical nested payload — if a save
+      // ever omits it (form-group bug, partial PUT, corrupted localStorage),
+      // fall back to the bundled defaults rather than rendering an empty
+      // admin table.
+      seminars: Array.isArray((r.seminars as any)?.seminars)
+        ? (r.seminars as any).seminars
+        : base.seminars.seminars,
+    } as typeof base.seminars;
     merged.unserBeitrag = {
       ...base.unserBeitrag,
       ...(r.unserBeitrag ?? {}),
@@ -181,20 +207,6 @@ export class ContentService {
         ? (r.aboutUs as any).stats
         : base.aboutUs.stats,
     } as typeof base.aboutUs;
-    merged.videos = {
-      ...base.videos,
-      ...(r.videos ?? {}),
-      // videoIds MUST be string[]. If the server has a stale string
-      // (e.g. from an older save that didn't go through the transform),
-      // fall back to defaults so the home page list still works.
-      videoIds: Array.isArray((r.videos as any)?.videoIds)
-        ? (r.videos as any).videoIds
-        : base.videos.videoIds,
-      playlistUrl:
-        typeof (r.videos as any)?.playlistUrl === 'string' && (r.videos as any).playlistUrl
-          ? (r.videos as any).playlistUrl
-          : base.videos.playlistUrl,
-    } as typeof base.videos;
     merged.footer = {
       ...base.footer,
       ...(r.footer ?? {}),

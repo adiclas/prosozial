@@ -340,9 +340,22 @@ export interface SectionHeader {
   text: string;
 }
 
+/**
+ * One entry in the public-site primary navigation. A nav item is either
+ * a leaf (with an `href` pointing to a page or anchor) or a parent that
+ * groups child links under a dropdown.
+ */
+export interface NavLink {
+  label: string;
+  /** Required for leaves; optional for parents that only group children. */
+  href?: string;
+  /** Child links rendered as a dropdown under this entry. */
+  children?: NavLink[];
+}
+
 export interface HeaderContent {
   brand: string;
-  navLinks: { label: string; href: string }[];
+  navLinks: NavLink[];
   ctaLabel: string;
   ctaHref: string;
 }

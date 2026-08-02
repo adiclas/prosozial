@@ -11,12 +11,17 @@ export const DEFAULT_CONTENT: SiteContent = {
   header: {
     brand: 'Prosozial',
     navLinks: [
-      { label: 'Bewertungen',  href: '#bewertungen' },
-      { label: 'Kontakt',      href: '#kontakt' },
-      { label: 'Seminare',     href: '/seminars' },
+      { label: 'Lösungen', children: [
+        { label: 'Mobilität',  href: '/#produkte' },
+        { label: 'Alltag',     href: '/#produkte' },
+        { label: 'Pflege',     href: '/#produkte' },
+      ]},
+      { label: 'Seminare',    href: '/seminars' },
       { label: 'Unser Beitrag', href: '/unserbeitrag' },
       { label: 'Verantwortung', href: '/verantwortung' },
-      { label: 'Über uns',     href: '/ueber-uns' },
+      { label: 'Über uns',    href: '/ueber-uns' },
+      { label: 'Bewertungen', href: '#bewertungen' },
+      { label: 'Kontakt',     href: '#kontakt' },
     ],
     ctaLabel: 'Kostenlose Beratung',
     ctaHref: '/login',

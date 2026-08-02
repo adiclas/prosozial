@@ -6,12 +6,33 @@
     </a>
 
     <nav class="primary-nav" aria-label="Hauptnavigation">
-      @for (link of header().navLinks; track link.href) {
-        @if (link.href.startsWith('http')) {
+      @for (link of header().navLinks; track link.label; let i = $index) {
+        @if (link.children?.length) {
+          <!-- Dropdown parent -->
+          <div class="primary-nav__dropdown" (mouseenter)="openDropdown(i)" (mouseleave)="closeDropdown(i)" (focusin)="openDropdown(i)" (focusout)="closeDropdown(i)">
+            <button
+              type="button"
+              class="primary-nav__parent"
+              [attr.aria-expanded]="dropdownOpen() === i"
+              [attr.aria-haspopup]="true"
+              (click)="toggleDropdown(i)">
+              {{ link.label }}
+              <app-icon name="arrow-right" [size]="12" class="primary-nav__caret" />
+            </button>
+            <div class="primary-nav__menu" [class.is-open]="dropdownOpen() === i" role="menu">
+              @for (child of link.children; track child.href) {
+                <a [routerLink]="child.href" class="primary-nav__sublink" role="menuitem" (click)="closeAllDropdowns()">
+                  <span>{{ child.label }}</span>
+                  <app-icon name="arrow-right" [size]="14" class="primary-nav__subarrow" />
+                </a>
+              }
+            </div>
+          </div>
+        } @else if (link.href?.startsWith('http')) {
           <a [href]="link.href" target="_blank" rel="noopener">{{ link.label }}</a>
-        } @else if (link.href.startsWith('/') && !link.href.startsWith('/#')) {
+        } @else if (link.href?.startsWith('/') && !link.href?.startsWith('/#')) {
           <a [routerLink]="link.href">{{ link.label }}</a>
-        } @else {
+        } @else if (link.href) {
           <a [href]="link.href">{{ link.label }}</a>
         }
       }
@@ -51,12 +72,25 @@
   @if (mobileNavOpen()) {
     <div class="mobile-nav" role="dialog" aria-label="Mobiles Menü">
       <div class="container">
-        @for (link of header().navLinks; track link.href) {
-          @if (link.href.startsWith('http')) {
+        @for (link of header().navLinks; track link.label; let i = $index) {
+          @if (link.children?.length) {
+            <!-- Sub-menu accordion (mobile) -->
+            <details class="mobile-nav__group">
+              <summary>
+                <span>{{ link.label }}</span>
+                <app-icon name="arrow-right" [size]="14" class="mobile-nav__caret" />
+              </summary>
+              <div class="mobile-nav__subitems">
+                @for (child of link.children; track child.href) {
+                  <a [routerLink]="child.href" class="mobile-nav__sublink" (click)="closeMobileNav()">{{ child.label }}</a>
+                }
+              </div>
+            </details>
+          } @else if (link.href?.startsWith('http')) {
             <a [href]="link.href" target="_blank" rel="noopener" (click)="closeMobileNav()">{{ link.label }}</a>
-          } @else if (link.href.startsWith('/') && !link.href.startsWith('/#')) {
+          } @else if (link.href?.startsWith('/') && !link.href?.startsWith('/#')) {
             <a [routerLink]="link.href" (click)="closeMobileNav()">{{ link.label }}</a>
-          } @else {
+          } @else if (link.href) {
             <a [href]="link.href" (click)="closeMobileNav()">{{ link.label }}</a>
           }
         }
