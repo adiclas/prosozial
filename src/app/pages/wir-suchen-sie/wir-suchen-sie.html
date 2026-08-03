@@ -1,0 +1,85 @@
+<div class="wir-suchen-sie-page">
+  <div class="container">
+
+    <!-- Page header -->
+    <header class="page-head">
+      <span class="eyebrow">{{ data().eyebrow }}</span>
+      <h1 class="page-title">{{ data().title }}</h1>
+      <p class="page-lead">{{ data().lead }}</p>
+    </header>
+
+    @if (data().intro) {
+      <section class="intro">
+        <p>{{ data().intro }}</p>
+      </section>
+    }
+
+    @if (jobs().length === 0) {
+      <p class="empty">Aktuell sind keine offenen Stellen ausgeschrieben. Schauen Sie bald wieder vorbei!</p>
+    } @else {
+      <!-- Featured position (first in list) -->
+      @if (featured(); as f) {
+        <section class="featured" aria-label="Top-Stelle">
+          <a [routerLink]="f.href" class="featured__link">
+            @if (f.image) {
+              <div class="featured__art">
+                <img [src]="f.image" [alt]="f.title" />
+                <div class="featured__art-pattern"></div>
+              </div>
+            } @else {
+              <div class="featured__art featured__art--placeholder" aria-hidden="true">
+                <div class="featured__art-pattern"></div>
+                <app-icon [name]="jobIcon(f.category)" [size]="56" />
+              </div>
+            }
+
+            <div class="featured__body">
+              <span class="featured__category">{{ f.category }}</span>
+              <h2 class="featured__title">{{ f.title }}</h2>
+              <p class="featured__excerpt">{{ f.excerpt }}</p>
+              <span class="featured__meta">{{ shortMeta(f) }}</span>
+              <span class="featured__cta">
+                Jetzt bewerben
+                <app-icon name="arrow-right" [size]="14" />
+              </span>
+            </div>
+          </a>
+        </section>
+      }
+
+      <!-- Rest of the positions as a 2-column grid -->
+      @if (rest().length) {
+        <section class="jobs" aria-label="Weitere offene Stellen">
+          <h2 class="jobs__heading">{{ data().jobsHeading }}</h2>
+          <ul class="jobs__list">
+            @for (j of rest(); track $index) {
+              <li class="job-card">
+                <a [routerLink]="j.href" class="job-card__link">
+                  <div class="job-card__media">
+                    @if (j.image) {
+                      <img [src]="j.image" [alt]="j.title" loading="lazy" />
+                    } @else {
+                      <div class="job-card__placeholder" aria-hidden="true">
+                        <app-icon [name]="jobIcon(j.category)" [size]="32" />
+                      </div>
+                    }
+                  </div>
+                  <div class="job-card__body">
+                    <span class="job-card__category">{{ j.category }}</span>
+                    <h3 class="job-card__title">{{ j.title }}</h3>
+                    <p class="job-card__excerpt">{{ j.excerpt }}</p>
+                    <span class="job-card__footer">
+                      <small>{{ shortMeta(j) }}</small>
+                      <app-icon name="arrow-right" [size]="14" class="job-card__arrow" aria-hidden="true" />
+                    </span>
+                  </div>
+                </a>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+    }
+
+  </div>
+</div>

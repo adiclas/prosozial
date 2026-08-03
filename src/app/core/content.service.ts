@@ -59,6 +59,8 @@ export class ContentService {
   readonly unserBeitrag = computed(() => this._content().unserBeitrag);
   readonly responsibility = computed(() => this._content().responsibility);
   readonly aboutUs = computed(() => this._content().aboutUs);
+  readonly wirsuchensie = computed(() => this._content().wirsuchensie);
+  readonly weltfair = computed(() => this._content().weltfair);
   readonly footer = computed(() => this._content().footer);
 
   constructor() {
@@ -226,6 +228,20 @@ export class ContentService {
         ? (r.aboutUs as any).stats
         : base.aboutUs.stats,
     } as typeof base.aboutUs;
+    merged.weltfair = {
+      ...base.weltfair,
+      ...(r.weltfair ?? {}),
+      posts: Array.isArray((r.weltfair as any)?.posts)
+        ? (r.weltfair as any).posts
+        : base.weltfair.posts,
+    } as typeof base.weltfair;
+    merged.wirsuchensie = {
+      ...base.wirsuchensie,
+      ...(r.wirsuchensie ?? {}),
+      jobs: Array.isArray((r.wirsuchensie as any)?.jobs)
+        ? (r.wirsuchensie as any).jobs
+        : base.wirsuchensie.jobs,
+    } as typeof base.wirsuchensie;
     merged.footer = {
       ...base.footer,
       ...(r.footer ?? {}),

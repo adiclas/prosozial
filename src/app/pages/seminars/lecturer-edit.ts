@@ -5,6 +5,12 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ContentService } from '../../core/content.service';
 import { Lecturer } from '../../core/content.types';
 import { Icon } from '../../shared/icon';
+import {
+  AVATAR_PRESETS,
+  generateAvatar,
+  generatePreset,
+  initialsOf as avatarInitialsOf,
+} from './avatar.util';
 
 const NEW_ID = '__new__';
 
@@ -160,6 +166,69 @@ export class LecturerEdit {
     this.dirty.set(true);
   }
 
+  /** Compute the initials for the current name — used by the avatar picker
+   *  preview chips which can't call imported functions directly. */
+  currentInitials(): string {
+    return avatarInitialsOf(this.form.get('name')?.value ?? this.lecturer()?.name ?? '?');
+  }
+
+  /**
+   * Generate a fresh random avatar based on the current name. The user
+   * can keep clicking the "Zufälliger Avatar" button until they find a
+   * seed they like. The resulting image is set as the current `avatar`
+   * value and the gradient background is stored in `avatarColor` so the
+   * placeholder/initials view stays consistent.
+   */
+  randomizeAvatar(): void {
+    const name = this.form.get('name')?.value ?? this.lecturer()?.name ?? '?';
+    const seed = Math.floor(Math.random() * 1_000_000);
+    const avatar = generateAvatar(name + ':' + seed);
+    this.form.get('avatar')?.setValue(avatar.dataUrl);
+    this.form.get('avatarColor')?.setValue(avatar.background);
+    this.dirty.set(true);
+  }
+
+  /**
+   * Pick a preset avatar from the gallery. `paletteIndex` identifies the
+   * palette (0–5) and `seedIndex` identifies the variant within the
+   * palette (0–5). Both are user-chosen via the picker UI.
+   */
+  pickPreset(paletteIndex: number, seedIndex: number): void {
+    const name = this.form.get('name')?.value ?? this.lecturer()?.name ?? '?';
+    const palette = AVATAR_PRESETS[paletteIndex];
+    if (!palette) return;
+    const seed = palette.seeds[seedIndex % palette.seeds.length];
+    const avatar = generatePreset(name, seed);
+    this.form.get('avatar')?.setValue(avatar.dataUrl);
+    this.form.get('avatarColor')?.setValue(avatar.background);
+    this.dirty.set(true);
+  }
+
+  /**
+   * The set of preset variants exposed in the picker. Each entry contains
+   * the data URL of the avatar image and the matching gradient. The
+   * `name` comes from the current form value so the SVG re-renders the
+   * lecturer's initials even as the user changes the name.
+   */
+  readonly avatarPresets = computed(() => {
+    const name = this.form.get('name')?.value ?? this.lecturer()?.name ?? '?';
+    return AVATAR_PRESETS.map((palette, paletteIndex) => ({
+      label: palette.label,
+      paletteIndex,
+      variants: palette.seeds.map((seed, seedIndex) => ({
+        seed,
+        seedIndex,
+        ...generatePreset(name, seed),
+      })),
+    }));
+  });
+
+  /** True when the current avatar is one of our auto-generated presets. */
+  isGeneratedAvatar(): boolean {
+    const url = this.form.get('avatar')?.value as string;
+    return !!url && url.startsWith('data:image/svg+xml');
+  }
+
   private compressImage(file: File, maxSize: number, quality: number): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -242,13 +311,21 @@ export class LecturerEdit {
 
   private rebuild(): void {
     const data = this.isNew() ? undefined : this.lecturer() ?? undefined;
+    // If the lecturer has no avatar on file (e.g. just imported from a CSV
+    // without a photo), auto-generate one so the live preview and the
+    // public-facing lecturer list / homepage bento all show an image
+    // instead of the dark initials placeholder. The user can still
+    // override it by uploading a real photo in the form.
+    const autoAvatar = (!this.isNew() && data && !data.avatar)
+      ? generateAvatar(data.name || data.id)
+      : null;
     this.form.patchValue(
       {
         id: data?.id ?? '',
         name: data?.name ?? '',
         role: data?.role ?? '',
-        avatar: data?.avatar ?? '',
-        avatarColor: data?.avatarColor ?? '#007F41',
+        avatar: data?.avatar ?? autoAvatar?.dataUrl ?? '',
+        avatarColor: data?.avatarColor ?? autoAvatar?.background ?? '#007F41',
         bio: data?.bio ?? '',
         email: data?.email ?? '',
         phone: data?.phone ?? '',

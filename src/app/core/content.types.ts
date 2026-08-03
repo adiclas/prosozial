@@ -369,6 +369,72 @@ export interface FooterContent {
   legal: { label: string; href: string }[];
 }
 
+/**
+ * One post in the "Weltfair" blog — mirrors the
+ * `<blog template="bild-neben-text">` widget on prosozial.de/weltfair.
+ * "Weltfair" ("world-fair") covers prosozial's global fair-trade and
+ * responsibility topics.
+ */
+export interface WeltfairPost {
+  category: string;
+  title: string;
+  excerpt: string;
+  image?: string;
+  meta?: string;
+  href: string;
+}
+
+/**
+ * Full content of the "Weltfair" blog page. Mirrors the simple
+ * single-widget layout at prosozial.de/weltfair — a header block plus
+ * a stream of image+text blog posts.
+ */
+export interface WeltfairContent {
+  eyebrow: string;
+  title: string;
+  lead: string;
+  intro: string;
+  postsHeading: string;
+  posts: WeltfairPost[];
+}
+
+/**
+ * One open job posting on the "Wir suchen Sie" (careers) page — mirrors
+ * the `<blog template="cols-4">` widget on prosozial.de/wirsuchensie.
+ * Uses the same shape as WeltfairPost so the same editor pattern works.
+ */
+export interface JobPosting {
+  /** Category / department, e.g. "Pflege", "Verwaltung", "IT". */
+  category: string;
+  /** Job title. */
+  title: string;
+  /** Short summary shown in the listing. */
+  excerpt: string;
+  /** Optional image. */
+  image?: string;
+  /** Author or location stamp, e.g. "Lahnstein · Vollzeit". */
+  meta?: string;
+  /** Where the card links — typically `/karriere/{id}` or an external URL. */
+  href: string;
+}
+
+/**
+ * Full content of the "Wir suchen Sie" (careers) page. Mirrors the
+ * simple widget layout at prosozial.de/wirsuchensie — a hero block plus
+ * a 4-column grid of open positions.
+ */
+export interface WirsuchensieContent {
+  eyebrow: string;
+  title: string;
+  lead: string;
+  /** Optional long-form intro paragraph shown at the top. */
+  intro: string;
+  /** Heading above the jobs list. */
+  jobsHeading: string;
+  /** Stream of open job postings. */
+  jobs: JobPosting[];
+}
+
 export interface SiteContent {
   header: HeaderContent;
   hero: HeroContent;
@@ -397,5 +463,9 @@ export interface SiteContent {
   responsibility: ResponsibilityContent;
   /** "Über uns" (About Us) page — mirrors prosozial.de/ueber-uns. */
   aboutUs: AboutUsContent;
+  /** "Weltfair" blog — mirrors prosozial.de/weltfair. */
+  weltfair: WeltfairContent;
+  /** "Wir suchen Sie" (careers / jobs) page — mirrors prosozial.de/wirsuchensie. */
+  wirsuchensie: WirsuchensieContent;
   footer: FooterContent;
 }

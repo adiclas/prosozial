@@ -884,8 +884,8 @@
   flex-direction: column;
   max-width: 1440px;
   margin: 0 auto;
-  padding-top: 60px;
-  padding-bottom: 20px;
+  padding-top: 40px;
+  padding-bottom: 10px;
 }
 
 /* ============================================================
@@ -918,13 +918,13 @@
 }
 
 .scatter__photo-frame {
-  width: 175px;
-  height: 220px;
-  border-radius: 20px;
+  width: 150px;
+  height: 188px;
+  border-radius: 18px;
   overflow: hidden;
   box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.06),
-    0 18px 40px rgba(15, 23, 42, 0.12);
+    0 1px 2px rgba(15, 23, 42, 0.05),
+    0 14px 32px rgba(15, 23, 42, 0.10);
   display: grid;
   place-items: center;
   color: #fff;
@@ -932,10 +932,22 @@
   font-size: var(--fs-xl);
   background: var(--color-ink-200);
   position: relative;
+  overflow: hidden;
   /* Soft, layered transition for shadow + a subtle inner ring on hover */
   transition: box-shadow 480ms cubic-bezier(0.16, 1, 0.3, 1),
               filter 480ms cubic-bezier(0.16, 1, 0.3, 1),
               transform 480ms cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Shimmer overlay for empty initials state */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 40%, rgba(255,255,255,0.18) 50%, transparent 60%);
+    opacity: 0;
+    transition: opacity 400ms ease;
+    pointer-events: none;
+  }
 
   /* Shiny gradient ring that breathes on hover */
   &::after {
@@ -1046,21 +1058,21 @@
    ============================================================ */
 .scatter__photos-top {
   position: relative;
-  height: 260px;
+  height: 220px;
   z-index: 2;
 
-  /* Pattern: odd-indexed photos sit HIGH (top 10-40px),
-     even-indexed sit LOW (top 120-160px). Slight rotation each. */
-  .scatter__photo--t1  { left: -1%;  top:  35px; transform: rotate(-4deg); }
-  .scatter__photo--t2  { left:  8%;  top: 150px; transform: rotate(-5deg); }
-  .scatter__photo--t3  { left: 16%;  top:  15px; transform: rotate( 4deg); }
-  .scatter__photo--t4  { left: 25%;  top: 145px; transform: rotate(-3deg); }
-  .scatter__photo--t5  { left: 34%;  top:   0px; transform: rotate( 5deg); }
-  .scatter__photo--t6  { left: 44%;  top: 155px; transform: rotate(-4deg); }
-  .scatter__photo--t7  { left: 54%;  top:  20px; transform: rotate( 3deg); }
-  .scatter__photo--t8  { left: 63%;  top: 145px; transform: rotate(-5deg); }
-  .scatter__photo--t9  { left: 74%;  top:  30px; transform: rotate( 4deg); }
-  .scatter__photo--t10 { left: 85%;  top: 150px; transform: rotate(-4deg); }
+  /* Pattern: odd-indexed photos sit HIGH (top 0-30px),
+     even-indexed sit LOW (top 100-130px). Slight rotation each. */
+  .scatter__photo--t1  { left: -1%;  top:  20px; transform: rotate(-4deg); }
+  .scatter__photo--t2  { left:  8%;  top: 130px; transform: rotate(-5deg); }
+  .scatter__photo--t3  { left: 16%;  top:   0px; transform: rotate( 4deg); }
+  .scatter__photo--t4  { left: 25%;  top: 125px; transform: rotate(-3deg); }
+  .scatter__photo--t5  { left: 34%;  top: -10px; transform: rotate( 5deg); }
+  .scatter__photo--t6  { left: 44%;  top: 130px; transform: rotate(-4deg); }
+  .scatter__photo--t7  { left: 54%;  top:  10px; transform: rotate( 3deg); }
+  .scatter__photo--t8  { left: 63%;  top: 125px; transform: rotate(-5deg); }
+  .scatter__photo--t9  { left: 74%;  top:  20px; transform: rotate( 4deg); }
+  .scatter__photo--t10 { left: 85%;  top: 130px; transform: rotate(-4deg); }
 }
 
 /* ============================================================
@@ -1147,11 +1159,13 @@
    Responsive
    ============================================================ */
 @media (max-width: 1280px) {
-  .scatter__photo-frame { width: 150px; height: 190px; border-radius: 18px; }
+  .scatter__photo-frame { width: 140px; height: 178px; border-radius: 18px; }
+  .scatter__photos-top { height: 200px; }
 }
 
 @media (max-width: 1024px) {
   .scatter__photo-frame { width: 130px; height: 165px; border-radius: 16px; }
+  .scatter__photos-top { height: 190px; }
 
   /* Hide alternate photos to keep visual clarity */
   .scatter__photo--t3, .scatter__photo--t6,

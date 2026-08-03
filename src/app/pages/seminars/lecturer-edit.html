@@ -121,6 +121,9 @@
                     <app-icon name="play" [size]="14" /> Ändern
                     <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onAvatarChange($event)" hidden />
                   </label>
+                  <button type="button" class="btn btn--ghost btn--sm" (click)="randomizeAvatar()" title="Zufälligen Avatar generieren">
+                    <app-icon name="sparkle" [size]="14" /> Neu
+                  </button>
                   <button type="button" class="btn btn--ghost btn--sm" (click)="clearAvatar()">
                     <app-icon name="trash" [size]="14" /> Entfernen
                   </button>
@@ -134,6 +137,9 @@
                   </div>
                   <input type="file" accept="image/png,image/jpeg,image/webp" (change)="onAvatarChange($event)" hidden />
                 </label>
+                <button type="button" class="btn btn--ghost btn--sm upload-zone__random" (click)="randomizeAvatar()" title="Zufälligen Avatar mit Initialen generieren">
+                  <app-icon name="sparkle" [size]="14" /> Oder zufälligen Avatar generieren
+                </button>
               }
               <label class="color-picker">
                 <span class="lbl">Fallback-Farbe <small>(für Initialen)</small></span>
@@ -142,6 +148,37 @@
                   <code>{{ form.get('avatarColor')?.value }}</code>
                 </div>
               </label>
+
+              <!-- Avatar preset picker — shown whenever the user wants a
+                   quick generated option (no upload required). Each row
+                   represents one palette; the chips are the variants. -->
+              <div class="avatar-picker">
+                <div class="avatar-picker__heading">
+                  <app-icon name="user" [size]="14" />
+                  <span>Aus Vorlagen wählen</span>
+                  @if (isGeneratedAvatar()) {
+                    <small class="avatar-picker__note">(Auto-generiert — jederzeit überschreibbar)</small>
+                  }
+                </div>
+                <div class="avatar-picker__palettes">
+                  @for (palette of avatarPresets(); track palette.label; let pi = $index) {
+                    <div class="avatar-picker__palette">
+                      <span class="avatar-picker__palette-label">{{ palette.label }}</span>
+                      <div class="avatar-picker__row">
+                        @for (variant of palette.variants; track variant.seed) {
+                          <button type="button" class="avatar-picker__chip"
+                                  [style.background]="variant.background"
+                                  [style.color]="variant.foreground"
+                                  (click)="pickPreset(pi, variant.seedIndex)"
+                                  [attr.aria-label]="'Wählt Vorlage ' + palette.label + ' ' + (variant.seedIndex + 1)">
+                            {{ currentInitials() }}
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
             </div>
 
             <div class="live-preview">

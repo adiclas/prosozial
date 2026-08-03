@@ -27,6 +27,7 @@ type SectionId =
   | 'unserBeitrag'
   | 'responsibility'
   | 'aboutUs'
+  | 'wirsuchensie'
   | 'footer'
   | 'seminarsHeader'
   | 'seminars';
@@ -104,6 +105,8 @@ export class Admin {
     'verantwortung':          'responsibility',
     'about-us':                'aboutUs',
     'about':                   'aboutUs',
+    'wirsuchensie':            'wirsuchensie',
+    'wir-suchen-sie':          'wirsuchensie',
   };
 
   readonly iconNames = ICON_NAMES;
@@ -150,6 +153,7 @@ export class Admin {
     { id: 'unserBeitrag',     label: 'Unser Beitrag',        group: 'Verantwortung', icon: 'heart' },
     { id: 'responsibility',   label: 'Verantwortung',        group: 'Verantwortung', icon: 'globe' },
     { id: 'aboutUs',           label: 'Über uns',             group: 'Unternehmen',   icon: 'sparkle' },
+    { id: 'wirsuchensie',      label: 'Wir suchen Sie',       group: 'Unternehmen',   icon: 'user' },
     { id: 'seminarsHeader',   label: 'Header — Seminare',    group: 'Seminare',    icon: 'menu' },
     { id: 'seminars',         label: 'Seminare',             group: 'Seminare',    icon: 'book' },
     { route: '/seminars/lecturers', label: 'Dozenten',       group: 'Seminare',    icon: 'trophy' },
@@ -453,6 +457,25 @@ export class Admin {
         ctaLabel: [this.current().aboutUs.ctaLabel],
         ctaHref: [this.current().aboutUs.ctaHref],
       }),
+      wirsuchensie: this.fb.group({
+        eyebrow: [this.current().wirsuchensie.eyebrow],
+        title: [this.current().wirsuchensie.title],
+        lead: [this.current().wirsuchensie.lead],
+        intro: [this.current().wirsuchensie.intro],
+        jobsHeading: [this.current().wirsuchensie.jobsHeading],
+        jobs: this.fb.array(
+          (this.current().wirsuchensie.jobs ?? []).map((j: any) =>
+            this.fb.group({
+              category: [j.category],
+              title: [j.title, Validators.required],
+              excerpt: [j.excerpt],
+              image: [j.image ?? ''],
+              meta: [j.meta ?? ''],
+              href: [j.href, Validators.required],
+            }),
+          ),
+        ),
+      }),
       seminarsHeader: this.sectionHeaderGroup(this.current().seminars.header),
       seminars: this.fb.group({
         header: this.sectionHeaderGroup(this.current().seminars.header),
@@ -522,6 +545,8 @@ export class Admin {
   get responsibilityArticlesArr(): FormArray { return this.form.get('responsibility.articles') as FormArray; }
   get aboutStoriesArr(): FormArray { return this.form.get('aboutUs.stories') as FormArray; }
   get aboutStatsArr(): FormArray { return this.form.get('aboutUs.stats') as FormArray; }
+  get weltfairPostsArr(): FormArray { return this.form.get('weltfair.posts') as FormArray; }
+  get jobsArr(): FormArray { return this.form.get('wirsuchensie.jobs') as FormArray; }
   get footerLegalArr(): FormArray { return this.form.get('footer.legal') as FormArray; }
 
   planFeaturesAt(i: number): FormArray {
@@ -615,6 +640,22 @@ export class Admin {
     value: [''],
     label: [''],
   });
+  readonly newWeltfairPost = (): FormGroup => this.fb.group({
+    category: ['Fairer Handel'],
+    title: ['', Validators.required],
+    excerpt: [''],
+    image: [''],
+    meta: [''],
+    href: ['/weltfair', Validators.required],
+  });
+  readonly newJobPosting = (): FormGroup => this.fb.group({
+    category: ['Pflege & Beratung'],
+    title: ['', Validators.required],
+    excerpt: [''],
+    image: [''],
+    meta: [''],
+    href: ['/wirsuchensie', Validators.required],
+  });
 
   addStringItem(arr: FormArray): void {
     arr.push(this.fb.control('', Validators.required));
@@ -654,13 +695,15 @@ export class Admin {
    * dropdown. Mirrors the public nav so admins don't have to type URL
    * paths by hand. Keep in sync with `app.routes.ts`.
    */
-  readonly navTargetOptions = computed<{ label: string; href: string }[]>(() => [
+readonly navTargetOptions = computed<{ label: string; href: string }[]>(() => [
     { label: '— Startseite',                          href: '/' },
     { label: '— Seminare',                            href: '/seminars' },
     { label: '— Dozenten (Liste)',                    href: '/seminars/lecturers' },
     { label: '— Unser Beitrag',                       href: '/unserbeitrag' },
     { label: '— Verantwortung',                       href: '/verantwortung' },
     { label: '— Über uns',                            href: '/ueber-uns' },
+    { label: '— Weltfair-Blog',                       href: '/weltfair' },
+    { label: '— Wir suchen Sie',                      href: '/wirsuchensie' },
     { label: '— Login',                               href: '/login' },
     { label: '# Bewertungen (Anker)',                 href: '#bewertungen' },
     { label: '# Kontakt (Anker)',                     href: '#kontakt' },

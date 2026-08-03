@@ -460,6 +460,100 @@ textarea { resize: vertical; min-height: 80px; }
   }
 }
 
+/* ============================================================
+   Avatar preset picker
+   ============================================================ */
+.upload-zone__random {
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.avatar-picker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--color-ink-25);
+  border: 1px dashed var(--color-ink-200);
+  border-radius: var(--radius-md);
+}
+
+.avatar-picker__heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-ink-500);
+
+  app-icon { color: var(--color-ink-500); }
+}
+
+.avatar-picker__note {
+  margin-left: auto;
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-primary);
+}
+
+.avatar-picker__palettes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.avatar-picker__palette {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.avatar-picker__palette-label {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--color-ink-700);
+}
+
+.avatar-picker__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.avatar-picker__chip {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  font-weight: 700;
+  font-size: var(--fs-sm);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  font-family: inherit;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+
+  &:hover {
+    transform: translateY(-2px) scale(1.06);
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.18);
+  }
+
+  &:active { transform: scale(0.95); }
+}
+
+@media (max-width: 540px) {
+  .avatar-picker__palette { grid-template-columns: 1fr; }
+  .avatar-picker__palette-label { font-weight: 700; }
+}
+
 /* Live preview */
 .live-preview {
   display: flex;

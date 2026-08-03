@@ -1094,6 +1094,78 @@
         </section>
       }
 
+      <!-- ============== WIR SUCHEN SIE (CAREERS) ============== -->
+      @if (active() === 'wirsuchensie') {
+        <section class="card" formGroupName="wirsuchensie">
+          <header class="card__head">
+            <div class="card__head-title">
+              <span class="card__kicker"><span class="card__kicker-dot"></span></span>
+              <div>
+                <small class="card__eyebrow">{{ activeGroup() }}</small>
+                <h2 class="card__title">Wir suchen Sie (Karriere-Seite)</h2>
+              </div>
+            </div>
+          </header>
+
+          <div class="grid-2">
+            <label class="span-2"><span>Eyebrow</span><input type="text" formControlName="eyebrow" /></label>
+            <label class="span-2"><span>Titel</span><input type="text" formControlName="title" /></label>
+            <label class="span-2"><span>Lead</span><textarea rows="2" formControlName="lead"></textarea></label>
+            <label class="span-2"><span>Intro-Absatz</span><textarea rows="4" formControlName="intro"></textarea></label>
+            <label class="span-2"><span>Listen-Überschrift</span><input type="text" formControlName="jobsHeading" /></label>
+          </div>
+
+          <h3>Offene Stellen</h3>
+          <div formArrayName="jobs">
+            <div class="array-stack" cdkDropList (cdkDropListDropped)="drop($event, jobsArr)">
+              @for (j of jobsArr.controls; track j; let i = $index) {
+                <div class="card card--sub card--draggable" [formGroupName]="i" cdkDrag>
+                  <header class="card__head">
+                    <button type="button" cdkDragHandle class="drag-handle drag-handle--lg" aria-label="Reihenfolge ändern">
+                      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true">
+                        <circle cx="5" cy="4" r="1.2"/><circle cx="5" cy="8" r="1.2"/><circle cx="5" cy="12" r="1.2"/>
+                        <circle cx="11" cy="4" r="1.2"/><circle cx="11" cy="8" r="1.2"/><circle cx="11" cy="12" r="1.2"/>
+                      </svg>
+                    </button>
+                    <strong>Stelle {{ i + 1 }}</strong>
+                    <button type="button" class="btn btn--ghost btn--sm" (click)="removeAt(jobsArr, i)" aria-label="Entfernen">
+                      <app-icon name="trash" [size]="14" />
+                    </button>
+                  </header>
+                  <div class="grid-2">
+                    <label>
+                      <span>Kategorie / Abteilung</span>
+                      <input type="text" formControlName="category" placeholder="z.B. Pflege & Beratung" />
+                    </label>
+                    <label>
+                      <span>Meta (Standort + Anstellung)</span>
+                      <input type="text" formControlName="meta" placeholder="z.B. Lahnstein · Vollzeit" />
+                    </label>
+                    <label class="span-2">
+                      <span>Titel</span>
+                      <input type="text" formControlName="title" />
+                    </label>
+                    <label class="span-2">
+                      <span>Excerpt</span>
+                      <textarea rows="3" formControlName="excerpt"></textarea>
+                    </label>
+                    <label>
+                      <span>Bild-URL (optional)</span>
+                      <input type="text" formControlName="image" placeholder="z.B. /assets/…" />
+                    </label>
+                    <label>
+                      <span>Link-Ziel</span>
+                      <input type="text" formControlName="href" placeholder="/wirsuchensie oder externer URL" />
+                    </label>
+                  </div>
+                </div>
+              }
+            </div>
+            <button type="button" class="btn btn--ghost" (click)="addTo(jobsArr, newJobPosting)">+ Stelle</button>
+          </div>
+        </section>
+      }
+
       <!-- ============== ÜBER UNS (ABOUT US) ============== -->
       @if (active() === 'aboutUs') {
         <section class="card" formGroupName="aboutUs">

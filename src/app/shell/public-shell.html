@@ -8,17 +8,38 @@
     <nav class="primary-nav" aria-label="Hauptnavigation">
       @for (link of header().navLinks; track link.label; let i = $index) {
         @if (link.children?.length) {
-          <!-- Dropdown parent -->
+          <!-- Dropdown parent. When the parent has its own href, the label
+               becomes a real link (clicking it navigates); the caret stays
+               a separate button that opens the dropdown. When href is empty,
+               the whole label is a button (the parent is just a category
+               header for the sub-menu, like "Mehr"). -->
           <div class="primary-nav__dropdown" (mouseenter)="openDropdown(i)" (mouseleave)="closeDropdown(i)" (focusin)="openDropdown(i)" (focusout)="closeDropdown(i)">
-            <button
-              type="button"
-              class="primary-nav__parent"
-              [attr.aria-expanded]="dropdownOpen() === i"
-              [attr.aria-haspopup]="true"
-              (click)="toggleDropdown(i)">
-              {{ link.label }}
-              <app-icon name="arrow-right" [size]="12" class="primary-nav__caret" />
-            </button>
+            <span class="primary-nav__parent-row">
+              @if (link.href) {
+                <a
+                  class="primary-nav__parent primary-nav__parent--linked"
+                  [attr.href]="link.href"
+                  [attr.target]="link.href?.startsWith('http') ? '_blank' : null"
+                  [attr.rel]="link.href?.startsWith('http') ? 'noopener' : null"
+                  [routerLink]="link.href?.startsWith('/') && !link.href?.startsWith('/#') ? link.href : null"
+                  (click)="closeAllDropdowns()">
+                  {{ link.label }}
+                </a>
+              } @else {
+                <span class="primary-nav__parent">
+                  {{ link.label }}
+                </span>
+              }
+              <button
+                type="button"
+                class="primary-nav__caret-btn"
+                [attr.aria-expanded]="dropdownOpen() === i"
+                [attr.aria-haspopup]="true"
+                [attr.aria-label]="(link.href ? 'Untermenü öffnen: ' : 'Untermenü umschalten: ') + link.label"
+                (click)="toggleDropdown(i)">
+                <app-icon name="arrow-right" [size]="12" class="primary-nav__caret" />
+              </button>
+            </span>
             <div class="primary-nav__menu" [class.is-open]="dropdownOpen() === i" role="menu">
               @for (child of link.children; track child.href) {
                 <a [routerLink]="child.href" class="primary-nav__sublink" role="menuitem" (click)="closeAllDropdowns()">
