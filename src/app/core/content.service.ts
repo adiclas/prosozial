@@ -98,10 +98,13 @@ export class ContentService {
       this._lastSyncedAt.set(Date.now());
       this._status.set('idle');
     } catch (err: any) {
-      // Backend not running or network error — keep the local cache and continue.
-      this._backendConnected.set(false);
-      this._error.set(this.formatError(err));
-      this._status.set('error');
+      const status = err?.status;
+      // 405/404 = backend exists but doesn't support reads (or no route).
+      // Treat as "no backend" rather than an error.
+      const offline = status === 405 || status === 404 || status === 0;
+      this._backendConnected.set(!offline);
+      this._error.set(offline ? null : this.formatError(err));
+      this._status.set(offline ? 'idle' : 'error');
     }
   }
 
@@ -140,8 +143,22 @@ export class ContentService {
       }, 2000);
       return { ok: true };
     } catch (err: any) {
-      // Roll back to the previous state so the UI doesn't pretend the save
-      // succeeded when the server didn't accept it.
+      const status = err?.status;
+      // 405 = Method Not Allowed (e.g. Vercel API only supports GET)
+      // 404 = no API route at all (static host returning SPA fallback)
+      // These aren't fatal — the content is safe in localStorage.
+      const readOnlyBackend = status === 405 || status === 404;
+      if (readOnlyBackend) {
+        this._backendConnected.set(false);
+        this._lastSyncedAt.set(Date.now());
+        this._status.set('saved');
+        setTimeout(() => {
+          if (this._status() === 'saved') this._status.set('idle');
+        }, 2000);
+        return { ok: true, localOnly: true };
+      }
+      // Real failure — roll back to the previous state so the UI doesn't
+      // pretend the save succeeded when the server didn't accept it.
       this._content.set(previous);
       this.writeLocal(previous);
       this._backendConnected.set(false);
