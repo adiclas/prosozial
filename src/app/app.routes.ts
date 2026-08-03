@@ -26,6 +26,10 @@ export const routes: Routes = [
         loadComponent: () => import('./pages/wir-suchen-sie/wir-suchen-sie').then((m) => m.WirSuchenSie),
       },
       {
+        path: 'seminars',
+        loadComponent: () => import('./pages/seminars/seminars-list').then((m) => m.SeminarsList),
+      },
+      {
         path: 'seminars/lecturers',
         loadComponent: () => import('./pages/seminars/lecturers-list').then((m) => m.LecturersList),
       },

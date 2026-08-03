@@ -16,15 +16,23 @@
           <div class="primary-nav__dropdown" (mouseenter)="openDropdown(i)" (mouseleave)="closeDropdown(i)" (focusin)="openDropdown(i)" (focusout)="closeDropdown(i)">
             <span class="primary-nav__parent-row">
               @if (link.href) {
-                <a
-                  class="primary-nav__parent primary-nav__parent--linked"
-                  [attr.href]="link.href"
-                  [attr.target]="link.href?.startsWith('http') ? '_blank' : null"
-                  [attr.rel]="link.href?.startsWith('http') ? 'noopener' : null"
-                  [routerLink]="link.href?.startsWith('/') && !link.href?.startsWith('/#') ? link.href : null"
-                  (click)="closeAllDropdowns()">
-                  {{ link.label }}
-                </a>
+                @if (link.href?.startsWith('/') && !link.href?.startsWith('/#')) {
+                  <a
+                    class="primary-nav__parent primary-nav__parent--linked"
+                    [routerLink]="link.href"
+                    (click)="closeAllDropdowns()">
+                    {{ link.label }}
+                  </a>
+                } @else {
+                  <a
+                    class="primary-nav__parent primary-nav__parent--linked"
+                    [attr.href]="link.href"
+                    [attr.target]="link.href?.startsWith('http') ? '_blank' : null"
+                    [attr.rel]="link.href?.startsWith('http') ? 'noopener' : null"
+                    (click)="closeAllDropdowns()">
+                    {{ link.label }}
+                  </a>
+                }
               } @else {
                 <span class="primary-nav__parent">
                   {{ link.label }}
