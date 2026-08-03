@@ -115,6 +115,7 @@ export class Admin {
   readonly status = this.contentService.status;
   readonly error = this.contentService.error;
   readonly lastSyncedAt = this.contentService.lastSyncedAt;
+  readonly backendConnected = this.contentService.backendConnected;
 
   /** Whether to show the validation-error banner above the section. */
   readonly showValidationAlert = signal(false);

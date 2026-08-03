@@ -30,11 +30,20 @@ export class ContentService {
   private readonly _status = signal<'idle' | 'loading' | 'saving' | 'saved' | 'error'>('idle');
   private readonly _error = signal<string | null>(null);
   private readonly _lastSyncedAt = signal<number | null>(null);
+  /**
+   * True while the /api/content backend answered with real JSON. On static
+   * hosts (e.g. Vercel without a serverless function) the SPA's index.html
+   * answers every route with status 200, so we detect the HTML body and mark
+   * the backend as offline — saves still persist in localStorage, they just
+   * don't sync across browsers.
+   */
+  private readonly _backendConnected = signal(true);
 
   readonly content = this._content.asReadonly();
   readonly status = this._status.asReadonly();
   readonly error = this._error.asReadonly();
   readonly lastSyncedAt = this._lastSyncedAt.asReadonly();
+  readonly backendConnected = this._backendConnected.asReadonly();
 
   readonly header = computed(() => this._content().header);
   readonly hero = computed(() => this._content().hero);
@@ -72,21 +81,32 @@ export class ContentService {
     this._status.set('loading');
     this._error.set(null);
     try {
-      const remote = await firstValueFrom(this.http.get<SiteContent>(API));
+      // Read as text so a 200-but-HTML response (static host fallback) doesn't
+      // throw a JSON parse error — we can inspect the body instead.
+      const body = await firstValueFrom(this.http.get(API, { responseType: 'text' }));
+      if (!this.looksLikeJson(body)) {
+        // The host answered with HTML — there is no real backend here.
+        this._backendConnected.set(false);
+        this._status.set('idle');
+        return;
+      }
+      const remote = JSON.parse(body) as SiteContent;
       const merged = this.merge(remote);
+      this._backendConnected.set(true);
       this._content.set(merged);
       this.writeLocal(merged);
       this._lastSyncedAt.set(Date.now());
       this._status.set('idle');
     } catch (err: any) {
       // Backend not running or network error — keep the local cache and continue.
+      this._backendConnected.set(false);
       this._error.set(this.formatError(err));
       this._status.set('error');
     }
   }
 
   /** Persist to the server; falls back to local-only if the API is unreachable. */
-  async save(next: SiteContent): Promise<{ ok: boolean; error?: string }> {
+  async save(next: SiteContent): Promise<{ ok: boolean; error?: string; localOnly?: boolean }> {
     this._status.set('saving');
     this._error.set(null);
     // Snapshot the current state so we can roll back if the server rejects
@@ -98,7 +118,20 @@ export class ContentService {
       // Optimistic local update so the UI feels instant.
       this._content.set(next);
       this.writeLocal(next);
-      await firstValueFrom(this.http.put(API, next));
+      const body = await firstValueFrom(this.http.put(API, next, { responseType: 'text' }));
+      if (!this.looksLikeJson(body)) {
+        // No real backend (static host returned the SPA shell). The content is
+        // already safely persisted to localStorage — report success as
+        // local-only rather than a hard failure.
+        this._backendConnected.set(false);
+        this._lastSyncedAt.set(Date.now());
+        this._status.set('saved');
+        setTimeout(() => {
+          if (this._status() === 'saved') this._status.set('idle');
+        }, 2000);
+        return { ok: true, localOnly: true };
+      }
+      this._backendConnected.set(true);
       this._lastSyncedAt.set(Date.now());
       this._status.set('saved');
       // Drop back to idle after a moment so the badge can fade out
@@ -111,6 +144,7 @@ export class ContentService {
       // succeeded when the server didn't accept it.
       this._content.set(previous);
       this.writeLocal(previous);
+      this._backendConnected.set(false);
       this._error.set(this.formatError(err));
       this._status.set('error');
       return { ok: false, error: this._error() ?? 'Save failed' };
@@ -289,5 +323,16 @@ export class ContentService {
     if (err?.status === 0) return 'Backend nicht erreichbar (läuft der Server?)';
     if (err?.status) return `Fehler ${err.status}: ${err.statusText || 'Server-Antwort fehlgeschlagen'}`;
     return err?.message ?? 'Unbekannter Fehler';
+  }
+
+  /**
+   * Heuristic: real /api/content responses are JSON objects/arrays. If the
+   * host instead answers with the SPA's index.html (common on static hosts
+   * like Vercel with no serverless function), the body starts with '<' —
+   * treat that as "no backend".
+   */
+  private looksLikeJson(body: string): boolean {
+    const t = (body ?? '').trim();
+    return t.startsWith('{') || t.startsWith('[');
   }
 }

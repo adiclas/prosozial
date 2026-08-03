@@ -56,6 +56,17 @@
   <main class="admin-main">
     <form [formGroup]="form" (ngSubmit)="save()" novalidate>
 
+      <!-- Inline warning: no backend connected (static host, e.g. Vercel) -->
+      @if (!backendConnected()) {
+        <div class="admin-alert admin-alert--warn" role="status">
+          <app-icon name="info-circle" [size]="16" />
+          <div>
+            <strong>Kein Server verbunden.</strong>
+            <span>Änderungen werden nur in diesem Browser gespeichert (lokal) und nicht mit anderen Geräten synchronisiert.</span>
+          </div>
+        </div>
+      }
+
       <!-- Inline error alert (server-side save failure) -->
       @if (status() === 'error' && error()) {
         <div class="admin-alert admin-alert--error" role="alert">
