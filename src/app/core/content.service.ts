@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import { DEFAULT_CONTENT } from './content-defaults';
 import { SiteContent } from './content.types';
 
-const STORAGE_KEY = 'prosozial.content.v1';
+const STORAGE_KEY = 'prosozial.content.v2';
 const API = '/api/content';
 
 /**
@@ -87,10 +87,15 @@ export class ContentService {
   async save(next: SiteContent): Promise<{ ok: boolean; error?: string }> {
     this._status.set('saving');
     this._error.set(null);
-    // Optimistic local update so the UI feels instant.
-    this._content.set(next);
-    this.writeLocal(next);
+    // Snapshot the current state so we can roll back if the server rejects
+    // the save. Without this, a failed PUT would leave the local signal +
+    // localStorage out of sync with the server — and the next refresh()
+    // would silently wipe the change from the user's view.
+    const previous = this._content();
     try {
+      // Optimistic local update so the UI feels instant.
+      this._content.set(next);
+      this.writeLocal(next);
       await firstValueFrom(this.http.put(API, next));
       this._lastSyncedAt.set(Date.now());
       this._status.set('saved');
@@ -100,6 +105,10 @@ export class ContentService {
       }, 2000);
       return { ok: true };
     } catch (err: any) {
+      // Roll back to the previous state so the UI doesn't pretend the save
+      // succeeded when the server didn't accept it.
+      this._content.set(previous);
+      this.writeLocal(previous);
       this._error.set(this.formatError(err));
       this._status.set('error');
       return { ok: false, error: this._error() ?? 'Save failed' };
@@ -143,7 +152,17 @@ export class ContentService {
     merged.header = {
       ...base.header,
       ...(r.header ?? {}),
-      navLinks: Array.isArray(r.header?.navLinks) ? r.header!.navLinks! : base.header.navLinks,
+      // Preserve each nav entry's children array verbatim so sub-links
+      // added via the admin (Lecturers under Seminare, etc.) survive the
+      // remote-to-local round-trip. Fall back to the bundled defaults
+      // only when the remote payload is missing the array entirely.
+      navLinks: Array.isArray(r.header?.navLinks)
+        ? r.header!.navLinks!.map((l: any) => ({
+            label: l.label,
+            href: l.href,
+            children: Array.isArray(l.children) ? l.children : [],
+          }))
+        : base.header.navLinks,
     } as typeof base.header;
     merged.hero = {
       ...base.hero,

@@ -164,8 +164,10 @@
           <p class="admin-hint">
             <strong>Tipp:</strong> Ziehen Sie Einträge per Drag &amp; Drop in die
             gewünschte Reihenfolge. Mit „Untermenü” können Sie ein Dropdown
-            mit Kind-Links anlegen — der übergeordnete Eintrag braucht dann kein
-            eigenes Ziel.
+            mit Kind-Links anlegen. Ein Eintrag mit Untermenü kann
+            optional trotzdem ein eigenes Ziel haben — klickt man auf den
+            übergeordneten Eintrag, wird dieses Ziel aufgerufen, das
+            Dropdown bleibt per Hover/Klick zugänglich.
           </p>
 
           <div formArrayName="navLinks">
@@ -207,6 +209,31 @@
                         </button>
                       </div>
                     </div>
+                  </div>
+
+                  <!-- Ziel picker — always shown so the parent can also be a link -->
+                  <div class="nav-tree__leaf-target">
+                    <div class="nav-link-target">
+                      <select (change)="onNavLinkHrefChange(i, $event)">
+                        @for (opt of navTargetOptions(); track opt.href) {
+                          <option [value]="opt.href" [selected]="l.get('href')?.value === opt.href">
+                            {{ opt.label }}
+                          </option>
+                        }
+                        <option value="__custom__" [selected]="!matchesKnownTarget(l.get('href')?.value)">
+                          [Eigene URL …]
+                        </option>
+                      </select>
+                      @if (!matchesKnownTarget(l.get('href')?.value)) {
+                        <input type="text" [value]="l.get('href')?.value ?? ''"
+                               (input)="setCustomHref(i, $event)"
+                               placeholder="/pfad oder https://…" />
+                      }
+                    </div>
+                    <small class="field-hint nav-link-preview">
+                      @if (l.get('href')?.value) { → {{ l.get('href')?.value }} }
+                      @else { Kein Ziel — Eintrag erscheint nur als Label im Dropdown }
+                    </small>
                   </div>
 
                   <!-- Sub-link form array — appears when "Untermenü" is on -->
@@ -255,31 +282,6 @@
                               (click)="addTo(navChildrenAt(i), newNavSubLink)">
                         <app-icon name="check" [size]="12" /> Unterpunkt hinzufügen
                       </button>
-                    </div>
-                  } @else {
-                    <!-- Leaf link: show Ziel picker (the original behavior) -->
-                    <div class="nav-tree__leaf-target">
-                      <div class="nav-link-target">
-                        <select (change)="onNavLinkHrefChange(i, $event)">
-                          @for (opt of navTargetOptions(); track opt.href) {
-                            <option [value]="opt.href" [selected]="l.get('href')?.value === opt.href">
-                              {{ opt.label }}
-                            </option>
-                          }
-                          <option value="__custom__" [selected]="!matchesKnownTarget(l.get('href')?.value)">
-                            [Eigene URL …]
-                          </option>
-                        </select>
-                        @if (!matchesKnownTarget(l.get('href')?.value)) {
-                          <input type="text" [value]="l.get('href')?.value ?? ''"
-                                 (input)="setCustomHref(i, $event)"
-                                 placeholder="/pfad oder https://…" />
-                        }
-                      </div>
-                      <small class="field-hint nav-link-preview">
-                        @if (l.get('href')?.value) { → {{ l.get('href')?.value }} }
-                        @else { Kein Ziel — Eintrag wird als reines Label angezeigt }
-                      </small>
                     </div>
                   }
                 </li>

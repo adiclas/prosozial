@@ -718,19 +718,19 @@ export class Admin {
    * Toggle a nav entry between "leaf" (with an href) and "parent"
    * (with children). The children array is always present in the form
    * group — we just clear it to revert to leaf mode, or seed a default
-   * child to enter parent mode.
+   * child to enter parent mode. Whether or not the entry has children,
+   * the parent label keeps its own href — clicking the parent label
+   * navigates while hovering / clicking the caret opens the dropdown.
    */
   toggleNavLinkChildren(index: number): void {
-    const row = this.headerNavArr.at(index);
     const children = this.navChildrenAt(index);
     if (children.length > 0) {
       // Collapsing to leaf — wipe the children so the render flips back.
       while (children.length) children.removeAt(0);
     } else {
-      // Expanding to parent — seed with one empty child + clear href so
-      // the parent doesn't link anywhere (the children are the targets).
+      // Expanding to parent — seed with one empty child. The parent's
+      // own href is preserved so it still works as a clickable link.
       children.push(this.newNavSubLink());
-      row.get('href')?.setValue('');
     }
   }
 
